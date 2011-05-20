@@ -33,7 +33,7 @@ public class Main {
     /**
      * @param args the command line arguments
      */
-    public void main(String[] args) {
+    public static void main(String[] args) {
         LokiForm lokiForm = null;
 
         args = handleArgs(args);
@@ -340,11 +340,8 @@ public class Main {
         retval[0] = null;
         retval[1] = null;
      
-        int i = 0, j;
+        int i = 0;
         String arg;
-        char flag;
-        boolean vflag = false;
-        String outputfile = "";
 
         while (i < args.length && args[i].startsWith("-")) {
             arg = args[i++];
@@ -355,9 +352,8 @@ public class Main {
                     System.err.println("-m requires host[:port]");
             }
             else if(arg.equals("-b")) {
-                if (CLHelper.isBlenderExe(args[0])) {
-                    retval[0] = args[i++];
-                } else {
+                retval[0] = args[i++];
+                if (!CLHelper.isBlenderExe(retval[0])) {                   
                     log.info("invalid blender executable");
                     System.exit(1);
                 }
