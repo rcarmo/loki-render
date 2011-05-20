@@ -434,6 +434,7 @@ public class GruntR implements Runnable, ICommon {
             try {
                 masterAddress = java.net.InetAddress.getByName(remoteMaster);
                 masterName = remoteMaster;
+                return true;
             } catch (UnknownHostException ex) {
                 log.throwing(className, "findMaster()", ex);
             }
