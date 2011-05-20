@@ -164,7 +164,7 @@ public class GruntR implements Runnable, ICommon {
                         gruntStreamSock.tryClose();
                     }
                 }
-                String msg = "searching for master...";
+                //String msg = "searching for master...";
                 if (gruntForm != null) {
                     GruntEQCaller.invokeUpdateConnectionLbl(gruntForm, msg);
                 } else {

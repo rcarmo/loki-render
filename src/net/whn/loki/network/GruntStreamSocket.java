@@ -23,6 +23,7 @@ package net.whn.loki.network;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.HashSet;
 
 /**
  *
@@ -34,6 +35,7 @@ public class GruntStreamSocket extends StreamSocketA {
             throws IOException {
         //throws IOE if socket creation fails
         socket = new Socket(masterAddress, connectPort);
+        socket.setSoTimeout(30*1000);
         initStream();
     }
 
