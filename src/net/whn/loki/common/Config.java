@@ -89,6 +89,7 @@ public class Config implements Serializable, ICommon {
         //grunt
         blenderBin = "blender";
         blendCacheMD5 = null;
+        remoteMaster = null;
     }
 
     public String getLokiVer() {
@@ -149,6 +150,14 @@ public class Config implements Serializable, ICommon {
 
     public String getBlenderBin() {
         return blenderBin;
+    }
+
+    public void setRemoteMaster(String host) {
+        remoteMaster = host;
+    }
+
+    public String getRemoteMaster() {
+        return remoteMaster;
     }
 
     public void setActiveBlendCacheMD5(String bcMD5) {
@@ -317,6 +326,7 @@ public class Config implements Serializable, ICommon {
     private String blenderBin;
     private String blendCacheMD5;
     private String blendCacheDir;
+    private String remoteMaster;
     //IO
     private static final Deflater fastDeflater = new Deflater(1);
     private static long time;

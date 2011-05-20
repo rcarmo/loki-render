@@ -33,18 +33,16 @@ public class Main {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    public void main(String[] args) {
         LokiForm lokiForm = null;
 
-        
-        //if null, no arg was found
-        String blenderExe = handleArgs(args);
+        args = handleArgs(args);
+        String blenderExe = args[0];
+        String remoteMaster = args[1];
 
         if (blenderExe != null) {
             gruntcl = true;
         }
-
-
 
         lokiCfgDir = IOHelper.setupLokiCfgDir();
 
@@ -105,6 +103,7 @@ public class Main {
                         cfg = Config.readCfgFile(lokiCfgDir);
                         if (gruntcl) {
                             cfg.setBlenderBin(blenderExe);
+                            cfg.setRemoteMaster(remoteMaster);
                         }
                         startLoki(lokiForm);
 
@@ -134,7 +133,7 @@ public class Main {
             }
         }
     }
-
+    
     /*BEGIN PRIVATE*/
     //general
     private static boolean gruntcl = false;
@@ -335,25 +334,42 @@ public class Main {
         }
     }
 
-    private static String handleArgs(String[] args) {
-        String blenderExe = null;
-        if (args.length == 1) {
-            if (CLHelper.isBlenderExe(args[0])) {
-                blenderExe = args[0];
-            } else {
-                log.info("invalid blender executable");
-                System.exit(1);
-            }
+    private static String[] handleArgs(String[] args) {
+        
+        String[] retval = new String[2];
+        retval[0] = null;
+        retval[1] = null;
+     
+        int i = 0, j;
+        String arg;
+        char flag;
+        boolean vflag = false;
+        String outputfile = "";
 
-        } else if (args.length > 1) {
-            System.out.print("Usage:    launchLoki.sh [<blenderExecutable>]\n" +
-                    "Examples: ./launchLoki.sh\n" +
-                    "or        /home/joe/loki/launchLoki.sh " +
-                    "/home/joe/blender2.49/blender\n\n" +
+        while (i < args.length && args[i].startsWith("-")) {
+            arg = args[i++];
+            if (arg.equals("-m")) {
+                if (i < args.length)
+                    retval[1] = args[i++];
+                else
+                    System.err.println("-m requires host[:port]");
+            }
+            else if(arg.equals("-b")) {
+                if (CLHelper.isBlenderExe(args[0])) {
+                    retval[0] = args[i++];
+                } else {
+                    log.info("invalid blender executable");
+                    System.exit(1);
+                }
+                return retval;
+            }
+            else {
+              System.out.print("Usage: java -jar loki.jar [-m host[:port]] [-b /path/to/blender/binary]\n" +
                     "Loki will start in grunt command line mode (no GUI) if\n" +
                     "a blender executable is provided as an argument.\n\n");
-            System.exit(0);
+              System.exit(0);  
+            }
         }
-        return blenderExe;
+        return retval;
     }
 }

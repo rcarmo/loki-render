@@ -20,6 +20,8 @@
  */
 package net.whn.loki.grunt;
 
+import java.net.UnknownHostException;
+import java.util.logging.Level;
 import net.whn.loki.IO.GruntIOHelper;
 import net.whn.loki.CL.CLHelper;
 import net.whn.loki.master.MasterEQCaller;
@@ -427,6 +429,15 @@ public class GruntR implements Runnable, ICommon {
      * we received an interrupt(shutdown). if false then localShutdown = true
      */
     private boolean findMaster() {
+        String remoteMaster = cfg.getRemoteMaster();
+        if(remoteMaster != null) {
+            try {
+                masterAddress = java.net.InetAddress.getByName(remoteMaster);
+                masterName = remoteMaster;
+            } catch (UnknownHostException ex) {
+                log.throwing(className, "findMaster()", ex);
+            }
+        }
         byte[] buf = new byte[256];
         DatagramPacket packet = new DatagramPacket(buf, buf.length);
 
