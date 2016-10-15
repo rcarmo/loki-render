@@ -12,6 +12,8 @@ import java.awt.Point;
 import java.io.File;
 import net.whn.loki.master.*;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
@@ -35,14 +37,18 @@ public class Main {
      */
     public static void main(String[] args) {
         LokiForm lokiForm = null;
+        manualMasterIP = null;
+        autoDiscoverMaster = true;
 
-        args = handleArgs(args);
-        String blenderExe = args[0];
-        String remoteMaster = args[1];
+        
+        //if null, no arg was found
+        String blenderExe = handleArgs(args);
 
         if (blenderExe != null) {
             gruntcl = true;
         }
+
+
 
         lokiCfgDir = IOHelper.setupLokiCfgDir();
 
@@ -101,9 +107,14 @@ public class Main {
                     setupLogging();
                     try {
                         cfg = Config.readCfgFile(lokiCfgDir);
+                        if(!autoDiscoverMaster) {
+                                cfg.setMasterIp(manualMasterIP);
+                                cfg.setAutoDiscoverMaster(autoDiscoverMaster);  
+                        }
                         if (gruntcl) {
                             cfg.setBlenderBin(blenderExe);
-                            cfg.setRemoteMaster(remoteMaster);
+                            System.out.println("Starting Loki grunt in cl mode");
+                            System.out.println("Attempting to connect to master...");
                         }
                         startLoki(lokiForm);
 
@@ -133,7 +144,7 @@ public class Main {
             }
         }
     }
-    
+
     /*BEGIN PRIVATE*/
     //general
     private static boolean gruntcl = false;
@@ -153,6 +164,9 @@ public class Main {
     private static GruntR grunt;
     private static Thread gruntReceiverThread;
     private static GruntForm gruntForm;
+    private static InetAddress manualMasterIP;
+    private static boolean  autoDiscoverMaster;
+    
     //logging
     private static final String className = "net.whn.loki.common.Main";
     private static final Logger log = Logger.getLogger(className);
@@ -334,38 +348,68 @@ public class Main {
         }
     }
 
-    private static String[] handleArgs(String[] args) {
-        
-        String[] retval = new String[2];
-        retval[0] = null;
-        retval[1] = null;
-     
-        int i = 0;
-        String arg;
-
-        while (i < args.length && args[i].startsWith("-")) {
-            arg = args[i++];
-            if (arg.equals("-m")) {
-                if (i < args.length)
-                    retval[1] = args[i++];
-                else
-                    System.err.println("-m requires host[:port]");
-            }
-            else if(arg.equals("-b")) {
-                retval[0] = args[i++];
-                if (!CLHelper.isBlenderExe(retval[0])) {                   
-                    log.info("invalid blender executable");
-                    System.exit(1);
-                }
-                return retval;
-            }
-            else {
-              System.out.print("Usage: java -jar loki.jar [-m host[:port]] [-b /path/to/blender/binary]\n" +
+    private static String handleArgs(String[] args) {
+        String blenderExe = null;
+        String usage = "\nUsage: java -jar LokiRender-<ver>.jar [<BlenderExe>] [<MasterIP>]\n\n" +
+                    "Examples:\n" +
+                    "java -jar LokiRender-071.jar\n" +
+                    "java -jar LokiRender-071.jar /path/to/blender\n" +
+                    "java -jar LokiRender-071.jar 192.168.17.45\n" +
+                    "java -jar LokiRender-071.jar /path/to/blender 192.168.17.45\n\n" +
                     "Loki will start in grunt command line mode (no GUI) if\n" +
-                    "a blender executable is provided as an argument.\n\n");
-              System.exit(0);  
+                    "a blender executable is provided as an argument.\n\n";
+        
+        if (args.length == 1) {
+            
+            //first check if it's a valid IP address
+            if (PreferencesForm.validateIP(args[0])) {
+                try {
+                   InetAddress testy = 
+                           InetAddress.getByName(args[0]);
+                    manualMasterIP = testy;
+                    autoDiscoverMaster = false;
+                } catch (UnknownHostException uhex) {
+                    log.info("Please enter a valid Master IP address.");
+                    System.out.print(usage);
+                    System.exit(0);
+                }
+            //check if it's a valid blender executable  
+            } else if(CLHelper.isBlenderExe(args[0])) {
+                blenderExe = args[0];
+            } else {
+                log.info("invalid argument");
+                System.out.print(usage);
+                System.exit(1);
             }
+
+        } else if (args.length == 2) { 
+            if (CLHelper.isBlenderExe(args[0])) {
+                blenderExe = args[0];
+            } else {
+                log.info("invalid blender executable");
+                System.exit(1);
+            }
+            
+            if(PreferencesForm.validateIP(args[1])) {
+                try {
+                    InetAddress testy = 
+                           InetAddress.getByName(args[1]);
+                    manualMasterIP = testy;
+                    autoDiscoverMaster = false;
+                } catch (UnknownHostException uhex) {
+                    log.info("Please enter a valid Master IP address.");
+                    System.out.print(usage);
+                    System.exit(0);
+                }
+            } else {
+                log.info("invalid argument");
+                System.out.print(usage);
+                System.exit(0);
+            }
+        }else if (args.length > 2) {
+            System.out.print(usage);
+            System.exit(0);
         }
-        return retval;
+        return blenderExe;
     }
 }

@@ -86,6 +86,7 @@
   <SyntheticProperties>
     <SyntheticProperty name="menuBar" type="java.lang.String" value="jMenuBar1"/>
     <SyntheticProperty name="formSizePolicy" type="int" value="1"/>
+    <SyntheticProperty name="generateCenter" type="boolean" value="false"/>
   </SyntheticProperties>
   <Events>
     <EventHandler event="windowClosing" listener="java.awt.event.WindowListener" parameters="java.awt.event.WindowEvent" handler="windowClosingActionPerformed"/>
@@ -170,7 +171,7 @@
       <Layout>
         <DimensionLayout dim="0">
           <Group type="103" groupAlignment="0" attributes="0">
-              <EmptySpace min="0" pref="2" max="32767" attributes="0"/>
+              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
           </Group>
         </DimensionLayout>
         <DimensionLayout dim="1">
@@ -196,7 +197,7 @@
                       <Component id="lblConnection" alignment="0" min="-2" max="-2" attributes="0"/>
                       <Component id="lblStatus" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace pref="162" max="32767" attributes="0"/>
+                  <EmptySpace pref="65" max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -224,7 +225,7 @@
       <SubComponents>
         <Component class="javax.swing.JLabel" name="lblConnection">
           <Properties>
-            <Property name="text" type="java.lang.String" value="searching for master..."/>
+            <Property name="text" type="java.lang.String" value="attempting to connect with master..."/>
             <Property name="toolTipText" type="java.lang.String" value="current connection status with the master"/>
           </Properties>
         </Component>

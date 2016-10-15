@@ -1,7 +1,7 @@
 /**
  *Project: Loki Render - A distributed job queue manager.
- *Version 0.6.2
- *Copyright (C) 2009 Daniel Petersen
+ *Version 0.7.2
+ *Copyright (C) 2014 Daniel Petersen
  */
 /**
  *This program is free software: you can redistribute it and/or modify
@@ -49,6 +49,7 @@ public class Job implements ICommon, Serializable {
         pFileMD5 = md5;
         blendCacheMD5 = blendCacheMd5;
         filePrefix = jI.getFilePrefix();
+        autoFileTransfer = jI.getAutoFileTransfer();
 
         running = 0;
         done = 0;
@@ -56,10 +57,14 @@ public class Job implements ICommon, Serializable {
         status = JobStatus.A;
 
         String outputDirStr = jI.getOutputDirName();
+        String blendCacheDirName = null;
 
         tileRender = jI.isTileEnabled();
-        String blendCacheDirName = IOHelper.generateBlendCacheDirName(
+        if(jI.getAutoFileTransfer()) {
+            blendCacheDirName = IOHelper.generateBlendCacheDirName(
                 pFileMD5);
+        }
+        
 
         if (tileRender) {
             tileMultiplier = jI.getTileMultiplier();
@@ -77,7 +82,8 @@ public class Job implements ICommon, Serializable {
                 for (int t = 0; t < tilesPerFrame; t++) {
                     tasks[tCount] = new Task(type, firstFrame + f, jobID,
                             md5, blendCacheMd5, blendCacheDirName,
-                            pFileSize, outputDirStr, filePrefix, true, t,
+                            pFileSize, outputDirStr, filePrefix,
+                            origProjFile, autoFileTransfer, true, t,
                             tilesPerFrame, tileBorders[t]);
 
                     tCount++;
@@ -96,7 +102,8 @@ public class Job implements ICommon, Serializable {
             for (int t = 0; t < tasks.length; t++) {
                 tasks[t] = new Task(type, firstFrame + t, jobID, md5,
                         blendCacheMd5, blendCacheDirName, pFileSize,
-                        outputDirStr, filePrefix, false, -1, -1, null);
+                        outputDirStr, filePrefix, origProjFile,
+                        autoFileTransfer, false, -1, -1, null);
             }
         }
     }
@@ -197,6 +204,10 @@ public class Job implements ICommon, Serializable {
      */
     Task test_returnTask(int task) {
         return tasks[getTaskIndex(task)];
+    }
+    
+    public boolean isAutoFileTransfer() {
+        return autoFileTransfer;
     }
 
     /**
@@ -372,6 +383,7 @@ public class Job implements ICommon, Serializable {
     private final String filePrefix;    //broker uses this
     private final String pFileMD5;
     private final String blendCacheMD5;
+    private final boolean autoFileTransfer;
     private int ready, running, done, failed;
     private final boolean tileRender;
     private final int tileMultiplier;

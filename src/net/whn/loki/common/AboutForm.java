@@ -31,7 +31,9 @@ public class AboutForm extends LokiForm {
     public AboutForm(String lokiVersion) {
         initComponents();
         lblVersion.setText(lokiVersion);
-        lblCopyright.setText("Copyright 2009 Daniel Petersen");
+        lblCopyright.setText("<html>Copyright 2014 Daniel Petersen<br>" +
+                "Tile rendering update by<br>" +
+                "Gustavo Alejandro Moreno Martínez</html>");
         areaLicense.setCaretPosition(0);
     }
 
@@ -61,8 +63,8 @@ public class AboutForm extends LokiForm {
 
         jLabel3.setText("License:");
 
-        areaLicense.setColumns(20);
         areaLicense.setEditable(false);
+        areaLicense.setColumns(20);
         areaLicense.setRows(5);
         areaLicense.setText("Loki Render is free software: you can redistribute it and/or modify\nit under the terms of the GNU General Public License as published by\nthe Free Software Foundation, either version 3 of the License, or\n(at your option) any later version.\n\nLoki Render is distributed in the hope that it will be useful,\nbut WITHOUT ANY WARRANTY; without even the implied warranty of\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\nGNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License\nalong with Loki Render.  If not, see <http://www.gnu.org/licenses/>.");
         jScrollPane1.setViewportView(areaLicense);
@@ -74,17 +76,18 @@ public class AboutForm extends LokiForm {
             .addGroup(pnlLicenseLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pnlLicenseLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 539, Short.MAX_VALUE)
-                    .addComponent(jLabel3))
+                    .addComponent(jScrollPane1)
+                    .addGroup(pnlLicenseLayout.createSequentialGroup()
+                        .addComponent(jLabel3)
+                        .addGap(0, 541, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         pnlLicenseLayout.setVerticalGroup(
             pnlLicenseLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlLicenseLayout.createSequentialGroup()
                 .addComponent(jLabel3)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 173, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 18, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 173, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         lblImageHolder.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/aboutImage.png"))); // NOI18N
@@ -93,23 +96,24 @@ public class AboutForm extends LokiForm {
 
         lblVersion.setText("x.x.x");
 
-        jLabel1.setText("http://loki-render.berlios.de");
+        jLabel1.setText("http://loki-render.sourceforge.net");
 
         lblCopyright.setText("Copyright");
+        lblCopyright.setVerticalAlignment(javax.swing.SwingConstants.TOP);
 
         javax.swing.GroupLayout pnlTxtLayout = new javax.swing.GroupLayout(pnlTxt);
         pnlTxt.setLayout(pnlTxtLayout);
         pnlTxtLayout.setHorizontalGroup(
             pnlTxtLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlTxtLayout.createSequentialGroup()
-                .addGroup(pnlTxtLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(pnlTxtLayout.createSequentialGroup()
+                .addGroup(pnlTxtLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(lblCopyright, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, pnlTxtLayout.createSequentialGroup()
                         .addComponent(jLabel2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(lblVersion))
-                    .addComponent(jLabel1)
-                    .addComponent(lblCopyright))
-                .addContainerGap(24, Short.MAX_VALUE))
+                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         pnlTxtLayout.setVerticalGroup(
             pnlTxtLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -121,7 +125,7 @@ public class AboutForm extends LokiForm {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(lblCopyright)
+                .addComponent(lblCopyright, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -154,8 +158,7 @@ public class AboutForm extends LokiForm {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(pnlTop, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(pnlLicense, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
+                    .addComponent(pnlLicense, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -178,7 +181,7 @@ public class AboutForm extends LokiForm {
 
             @Override
             public void run() {
-                new AboutForm("0.6.2").setVisible(true);
+                new AboutForm("0.7.2").setVisible(true);
             }
         });
     }

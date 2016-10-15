@@ -1,7 +1,7 @@
 /**
  *Project: Loki Render - A distributed job queue manager.
- *Version 0.6.2
- *Copyright (C) 2009 Daniel Petersen
+ *Version 0.7.2
+ *Copyright (C) 2014 Daniel Petersen
  *Created on Aug 8, 2009, 8:09:39 PM
  */
 /**
@@ -21,6 +21,7 @@
 package net.whn.loki.master;
 
 import java.io.File;
+import java.io.IOException;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import net.whn.loki.common.LokiForm;
@@ -40,7 +41,9 @@ public class AddJobForm extends LokiForm {
         txtProjectFile.setText(masterForm.getCfg().getProjFile().toString());
         txtOutputDir.setText(masterForm.getCfg().getOutDirFile().toString());
         txtOutputPrefix.setText(masterForm.getCfg().getFilePrefix());
-        cbxTileMultiplier.setSelectedIndex(2);
+        comboboxTileMultiplier.setSelectedIndex(2);
+        cbxAutoFileTransfer.setSelected(
+                masterForm.getCfg().getAutoFileHandling());
         updateMultiplierText();
     }
 
@@ -74,11 +77,12 @@ public class AddJobForm extends LokiForm {
         OutputBrowseButton = new javax.swing.JButton();
         jLabel2 = new javax.swing.JLabel();
         txtOutputPrefix = new javax.swing.JTextField();
+        cbxAutoFileTransfer = new javax.swing.JCheckBox();
         cancelButton = new javax.swing.JButton();
         saveButton = new javax.swing.JButton();
-        jPanel2 = new javax.swing.JPanel();
-        checkboxEnableTile = new javax.swing.JCheckBox();
-        cbxTileMultiplier = new javax.swing.JComboBox();
+        pnlTileRendering = new javax.swing.JPanel();
+        cbxEnableTile = new javax.swing.JCheckBox();
+        comboboxTileMultiplier = new javax.swing.JComboBox();
         jLabel3 = new javax.swing.JLabel();
         lblMultiplier = new javax.swing.JLabel();
 
@@ -136,6 +140,19 @@ public class AddJobForm extends LokiForm {
             }
         });
 
+        cbxAutoFileTransfer.setText("Enable automatic file transfer");
+        cbxAutoFileTransfer.setToolTipText("Uncheck this if you have setup a network share with project files that all nodes can access.\nUseful for large projects with lots of texture files, etc.");
+        cbxAutoFileTransfer.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                cbxAutoFileTransferStateChanged(evt);
+            }
+        });
+        cbxAutoFileTransfer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cbxAutoFileTransferActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -151,19 +168,22 @@ public class AddJobForm extends LokiForm {
                     .addComponent(nameLabel, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(typeLabel, javax.swing.GroupLayout.Alignment.TRAILING))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(txtLastFrame, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txtFirstFrame, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txtOutputPrefix, javax.swing.GroupLayout.PREFERRED_SIZE, 171, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txtName, javax.swing.GroupLayout.PREFERRED_SIZE, 175, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(cbxJobType, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txtProjectFile, javax.swing.GroupLayout.DEFAULT_SIZE, 318, Short.MAX_VALUE)
-                    .addComponent(txtOutputDir))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(FileBrowseButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(OutputBrowseButton, javax.swing.GroupLayout.DEFAULT_SIZE, 70, Short.MAX_VALUE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(cbxAutoFileTransfer)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(txtLastFrame, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(txtFirstFrame, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(txtOutputPrefix, javax.swing.GroupLayout.PREFERRED_SIZE, 171, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(txtName, javax.swing.GroupLayout.PREFERRED_SIZE, 175, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(cbxJobType, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(txtProjectFile, javax.swing.GroupLayout.DEFAULT_SIZE, 318, Short.MAX_VALUE)
+                            .addComponent(txtOutputDir))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(FileBrowseButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(OutputBrowseButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                .addContainerGap())
         );
 
         jPanel1Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {txtFirstFrame, txtLastFrame});
@@ -203,6 +223,8 @@ public class AddJobForm extends LokiForm {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lastFrameLabel)
                     .addComponent(txtLastFrame, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addComponent(cbxAutoFileTransfer)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -215,63 +237,65 @@ public class AddJobForm extends LokiForm {
         });
 
         saveButton.setText("Save");
+        saveButton.setMaximumSize(new java.awt.Dimension(60, 30));
+        saveButton.setMinimumSize(new java.awt.Dimension(60, 30));
         saveButton.setName("saveButton"); // NOI18N
+        saveButton.setPreferredSize(new java.awt.Dimension(60, 30));
         saveButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 saveButtonActionPerformed(evt);
             }
         });
 
-        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Tile rendering"));
-        jPanel2.setToolTipText("Tile rendering splits a frame into separate parts for parallel rendering of tiles.");
+        pnlTileRendering.setBorder(javax.swing.BorderFactory.createTitledBorder("Tile rendering"));
+        pnlTileRendering.setToolTipText("Tile rendering splits a frame into separate parts for parallel rendering of tiles.");
 
-        checkboxEnableTile.setText("Enabled");
-        checkboxEnableTile.addActionListener(new java.awt.event.ActionListener() {
+        cbxEnableTile.setText("Enabled");
+        cbxEnableTile.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkboxEnableTileActionPerformed(evt);
+                cbxEnableTileActionPerformed(evt);
             }
         });
 
-        cbxTileMultiplier.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "2", "3", "4", "5", "6", "7", "8", "9", "10" }));
-        cbxTileMultiplier.setToolTipText("select a multiplier to specify how many tiles parts will be used");
-        cbxTileMultiplier.setEnabled(false);
-        cbxTileMultiplier.addActionListener(new java.awt.event.ActionListener() {
+        comboboxTileMultiplier.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20" }));
+        comboboxTileMultiplier.setToolTipText("select a multiplier to specify how many tiles parts will be used");
+        comboboxTileMultiplier.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                cbxTileMultiplierActionPerformed(evt);
+                comboboxTileMultiplierActionPerformed(evt);
             }
         });
 
         jLabel3.setText("Multiplier:");
 
         lblMultiplier.setToolTipText("the total number of tiles parts");
-        lblMultiplier.setEnabled(false);
 
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
+        javax.swing.GroupLayout pnlTileRenderingLayout = new javax.swing.GroupLayout(pnlTileRendering);
+        pnlTileRendering.setLayout(pnlTileRenderingLayout);
+        pnlTileRenderingLayout.setHorizontalGroup(
+            pnlTileRenderingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlTileRenderingLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(checkboxEnableTile)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGroup(pnlTileRenderingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(cbxEnableTile)
+                    .addGroup(pnlTileRenderingLayout.createSequentialGroup()
                         .addComponent(jLabel3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(cbxTileMultiplier, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(comboboxTileMultiplier, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(lblMultiplier)))
-                .addContainerGap(392, Short.MAX_VALUE))
+                        .addComponent(lblMultiplier, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(282, Short.MAX_VALUE))
         );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addComponent(checkboxEnableTile)
+        pnlTileRenderingLayout.setVerticalGroup(
+            pnlTileRenderingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlTileRenderingLayout.createSequentialGroup()
+                .addComponent(cbxEnableTile)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(cbxTileMultiplier, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lblMultiplier))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(pnlTileRenderingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lblMultiplier, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(pnlTileRenderingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel3)
+                        .addComponent(comboboxTileMultiplier, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(12, 12, 12))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -281,29 +305,27 @@ public class AddJobForm extends LokiForm {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(pnlTileRendering, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(cancelButton, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(saveButton)))
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(cancelButton, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(saveButton, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
-
-        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {cancelButton, saveButton});
-
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(pnlTileRendering, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(saveButton)
+                    .addComponent(saveButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(cancelButton))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         pack();
@@ -349,19 +371,22 @@ public class AddJobForm extends LokiForm {
             txtProjectFile.requestFocusInWindow();
         }
 
-        //check that the output dir exists
+        //check that the output dir exists and is writable
         try {
             f = new File(txtOutputDir.getText());
-            if (!f.canWrite() && valid) {
-                JOptionPane.showMessageDialog(rootPane,
-                        "Loki cannot write to the output directory.");
-                valid = false;
-                txtOutputDir.requestFocusInWindow();
-            }
+            File outputTest = new File(f, "zoki");
+            
+                outputTest.createNewFile();
+                outputTest.delete();
         } catch (NullPointerException nullEx) {
             JOptionPane.showMessageDialog(rootPane, "Please enter a valid project file.");
             valid = false;
             txtOutputDir.requestFocusInWindow();
+        } catch (IOException ioe) {
+                JOptionPane.showMessageDialog(rootPane,
+                        "Loki cannot write to the output directory.");
+                valid = false;
+                txtOutputDir.requestFocusInWindow();
         }
 
         //check that the frame entries are integers
@@ -400,9 +425,10 @@ public class AddJobForm extends LokiForm {
                     txtOutputPrefix.getText(),
                     Integer.parseInt(txtFirstFrame.getText()),
                     Integer.parseInt(txtLastFrame.getText()), 3,
-                    checkboxEnableTile.isSelected(),
+                    cbxEnableTile.isSelected(),
                     Integer.parseInt(
-                    (String) cbxTileMultiplier.getSelectedItem())));
+                    (String) comboboxTileMultiplier.getSelectedItem()),
+                    cbxAutoFileTransfer.isSelected()));
             dispose();
             masterForm.setEnabled(true);
 
@@ -428,7 +454,7 @@ public class AddJobForm extends LokiForm {
 
     private void updateMultiplierText() {
         Integer multiplier = Integer.parseInt(
-                (String) cbxTileMultiplier.getSelectedItem());
+                (String) comboboxTileMultiplier.getSelectedItem());
         String txt = multiplier.toString() + " * " + multiplier.toString() +
                 " = " + Integer.toString(multiplier * multiplier) + " tiles";
         lblMultiplier.setText(txt);
@@ -450,31 +476,54 @@ public class AddJobForm extends LokiForm {
         // TODO add your handling code here:
     }//GEN-LAST:event_txtOutputPrefixActionPerformed
 
-    private void checkboxEnableTileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkboxEnableTileActionPerformed
-        cbxTileMultiplier.setEnabled(checkboxEnableTile.isSelected());
-        lblMultiplier.setEnabled(checkboxEnableTile.isSelected());
-    }//GEN-LAST:event_checkboxEnableTileActionPerformed
+    private void cbxEnableTileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbxEnableTileActionPerformed
+        comboboxTileMultiplier.setEnabled(cbxEnableTile.isSelected());
+        lblMultiplier.setEnabled(cbxEnableTile.isSelected());
+    }//GEN-LAST:event_cbxEnableTileActionPerformed
 
-    private void cbxTileMultiplierActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbxTileMultiplierActionPerformed
+    private void comboboxTileMultiplierActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboboxTileMultiplierActionPerformed
         updateMultiplierText();
-    }//GEN-LAST:event_cbxTileMultiplierActionPerformed
+    }//GEN-LAST:event_comboboxTileMultiplierActionPerformed
+
+    private void cbxAutoFileTransferActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbxAutoFileTransferActionPerformed
+        if(cbxAutoFileTransfer.isSelected()) {
+            pnlTileRendering.setEnabled(true);
+            cbxEnableTile.setEnabled(true);
+            jLabel3.setEnabled(true);
+            comboboxTileMultiplier.setEnabled(true);
+            lblMultiplier.setEnabled(true);
+        } else {
+            pnlTileRendering.setEnabled(false);
+            cbxEnableTile.setEnabled(false);
+            cbxEnableTile.setSelected(false);
+            jLabel3.setEnabled(false);
+            comboboxTileMultiplier.setEnabled(false);
+            lblMultiplier.setEnabled(false);
+        }
+    }//GEN-LAST:event_cbxAutoFileTransferActionPerformed
+
+    private void cbxAutoFileTransferStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_cbxAutoFileTransferStateChanged
+        
+    }//GEN-LAST:event_cbxAutoFileTransferStateChanged
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton FileBrowseButton;
     private javax.swing.JButton OutputBrowseButton;
     private javax.swing.JButton cancelButton;
+    private javax.swing.JCheckBox cbxAutoFileTransfer;
+    private javax.swing.JCheckBox cbxEnableTile;
     private javax.swing.JComboBox cbxJobType;
-    private javax.swing.JComboBox cbxTileMultiplier;
-    private javax.swing.JCheckBox checkboxEnableTile;
+    private javax.swing.JComboBox comboboxTileMultiplier;
     private javax.swing.JLabel fileLabel;
     private javax.swing.JLabel firstFrameLabel;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
     private javax.swing.JLabel lastFrameLabel;
     private javax.swing.JLabel lblMultiplier;
     private javax.swing.JLabel nameLabel;
+    private javax.swing.JPanel pnlTileRendering;
     private javax.swing.JFileChooser projectFileChooser;
     private javax.swing.JButton saveButton;
     private javax.swing.JTextField txtFirstFrame;

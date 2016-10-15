@@ -1,7 +1,7 @@
 /**
  *Project: Loki Render - A distributed job queue manager.
- *Version 0.6.2
- *Copyright (C) 2009 Daniel Petersen
+ *Version 0.7.2
+ *Copyright (C) 2014 Daniel Petersen
  *Created on Sep 10, 2009
  */
 /**
@@ -23,6 +23,8 @@ package net.whn.loki.master;
 import net.whn.loki.common.*;
 import java.awt.EventQueue;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
 /**
  *
@@ -104,8 +106,9 @@ public class MasterEQCaller extends EQCaller {
                 Object[] options = {"OK", "Stop the Queue"};
                 String prelude =
                         "One or more tasks in the job queue have failed.\n" +
-                        "Below is the first error message. You can view job\n" +
-                        "details for more information.\n\n\"";
+                        "Below is output from the first failed task.\n" +
+                        "You can view job\n details for more information.\n" +
+                        "Viewing the log in <userdir>/.loki may also help.\n\n\"";
                 if (!failureMsgOpen) {
                     failureMsgOpen = true;
                     int result = JOptionPane.showOptionDialog(

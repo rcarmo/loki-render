@@ -1,7 +1,7 @@
 /**
  *Project: Loki Render - A distributed job queue master.
- *Version 0.6.2
- *Copyright (C) 2009 Daniel Petersen
+ *Version 0.7.2
+ *Copyright (C) 2014 Daniel Petersen
  *Created on Aug 19, 2009
  */
 /**
@@ -83,7 +83,11 @@ public class Broker implements Runnable, ICommon {
         }
         bSSock.tryClose();
         try {
+            if(taskPending) {
+                sendBusyGruntLostMsg();
+            }
             sendRemoveGruntMsg();
+            
         } catch (InterruptedException ex) {
             ErrorHelper.outputToLogMsgAndKill(null, false, log,
                         "fatal error. exiting.", ex);
@@ -93,6 +97,13 @@ public class Broker implements Runnable, ICommon {
                         "fatal error. exiting.", mfe);
                 System.exit(-1);
         }
+    }
+    
+    public void sendBusyGruntLostMsg() throws InterruptedException,
+            MasterFrozenException {
+        log.fine("sending lostBusyGruntMsg for grunt w/ id: " + gruntID);
+        Msg lostBusyGruntMsg = new LostBusyGruntMsg(gruntID, assignedTask);
+        master.deliverMessage(lostBusyGruntMsg);
     }
 
     public void sendRemoveGruntMsg() throws InterruptedException,
@@ -151,6 +162,7 @@ public class Broker implements Runnable, ICommon {
         lokiBaseDir = m.getLokiCfgDir();
         brokersModel = bModel;
         status = GruntStatus.BUSY;
+        taskPending = false;
         statusStr = "unknown";
         assignedTask = null;
         lastMachineUpdate = null;
@@ -220,6 +232,7 @@ public class Broker implements Runnable, ICommon {
             h = new Hdr(HdrType.TASK_ASSIGN, t.clone());
             bSSock.sendHdr(h);
             assignedTask = t;
+            taskPending = true;
         } catch (CloneNotSupportedException cex) {
             //TODO - um...
             log.severe("couldn't clone task!");
@@ -283,6 +296,7 @@ public class Broker implements Runnable, ICommon {
     private Thread brokerThread;
     private BrokerStreamSocket bSSock;
     private volatile Task assignedTask; //accessed by both master and broker
+    private volatile boolean taskPending; //both master and broker
 
     /**
      * this is handling an incoming delivery on the gruntSocket
@@ -302,6 +316,7 @@ public class Broker implements Runnable, ICommon {
             handleMachineUpdate(header);
         } else if (header.getType() == HdrType.TASK_REPORT) {
             handleTaskReport(header);   //throws InterruptedException
+            taskPending = false;
         } else if (header.getType() == HdrType.FILE_REQUEST) {
             handleFileRequest(header);
         } else {
@@ -351,9 +366,20 @@ public class Broker implements Runnable, ICommon {
 
         //we only get a file if task is done
         if (t.getStatus() == TaskStatus.DONE) {
-            brokersModel.updateBrokerRow(gruntID, "sending");
-            MasterIOHelper.receiveOutputFileFromGrunt(bSSock, t, lokiBaseDir);
             lastTaskTime = t.getTaskTime();
+            if(t.isAutoFileTranfer()) {
+                brokersModel.updateBrokerRow(gruntID, "sending");
+                if(!MasterIOHelper.receiveOutputFileFromGrunt(
+                        bSSock, t, lokiBaseDir)) {
+                    //failed to receive or save output file
+                    t.setStatus(TaskStatus.FAILED);
+                    String error = "failed to receive file from grunt, or " +
+                            "save file to the output directory. Check " +
+                            "output directory permissions.";
+                    log.warning(error);
+                    t.setErrout(error);
+                }
+            }
         }
         t.setGruntName(machine.getHostname());
 

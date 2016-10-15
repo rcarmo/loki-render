@@ -1,7 +1,7 @@
 /**
  *Project: Loki Render - A distributed job queue manager.
- *Version 0.6.2
- *Copyright (C) 2009 Daniel Petersen
+ *Version 0.7.2
+ *Copyright (C) 2014 Daniel Petersen
  *Created on Oct 27, 2009
  */
 
@@ -22,6 +22,8 @@
 
 package net.whn.loki.error;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import net.whn.loki.common.*;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -42,7 +44,12 @@ public class DefaultExceptionHandler implements Thread.UncaughtExceptionHandler 
                e.toString() + "\nPlease view the log for details.\n" +
                "Wisdom would dictate restarting Loki at this point.",
                "Loki Render Error", JOptionPane.ERROR_MESSAGE);
-       log.warning("uncaught throwable: " + e.getMessage());
+       
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+       
+        log.warning("uncaught throwable: " + "\n" + sw.toString());
     }
 
     //logging

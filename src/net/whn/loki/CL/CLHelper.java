@@ -1,7 +1,7 @@
 /**
  *Project: Loki Render - A distributed job queue manager.
- *Version 0.6.2
- *Copyright (C) 2009 Daniel Petersen
+ *Version 0.7.2
+ *Copyright (C) 2014 Daniel Petersen
  *Created on Sep 12, 2009
  */
 /**
@@ -49,11 +49,11 @@ public class CLHelper implements ICommon {
     }
 
     /**
-     * generates command line based on type and values in task
+     * generates command line based on type and values in task, auto file transfer
      * @param task
      * @return command line to pass to shell, or null if unknown type
      */
-    public static String[] generateTaskCL(String bin, File lBaseDir, Task task)
+    public static String[] generateFileTaskCL(String bin, File lBaseDir, Task task)
             throws IOException {
         String[] taskCL = null;
         JobType type = task.getType();
@@ -85,7 +85,13 @@ public class CLHelper implements ICommon {
         String[] tokens = stdout.split("\\n");
         for (int i = 0; i < tokens.length; i++) {
             if (tokens[i].contains("Saved:")) {
-                int last = tokens[i].lastIndexOf("Time:") - 1;
+                int last;
+                if (tokens[i].contains("Time:")) {
+                    last = tokens[i].lastIndexOf("Time:") - 1;
+                }
+                else {
+                    last = tokens[i].length();
+                }
                 return tokens[i].substring(7, last);
             }
         }
@@ -166,48 +172,70 @@ public class CLHelper implements ICommon {
 
     private static String[] blender_generateCL(String blenderBin,
             File lokiBaseDir, Task t) throws IOException {
-
-        File blendFile = new File(lokiBaseDir, "fileCache" +
+        
+        File blendFile;
+        File outputDirFile;
+        
+        if(t.isAutoFileTranfer()) {
+            blendFile = new File(lokiBaseDir, "fileCache" +
                 File.separator + t.getProjectFileMD5() + ".blend");
-        File tmpDirFile = new File(lokiBaseDir, "tmp");
+            outputDirFile = new File(lokiBaseDir, "tmp");
+        } else {    //manual    
+            blendFile = t.getOrigProjFile();
+            outputDirFile = new File(t.getOutputDir());
+        }
+
+        
         String[] blenderCL = null;
 
-        if (blendFile.canRead() && tmpDirFile.isDirectory()) {
+        if (blendFile.canRead() && outputDirFile.isDirectory()) {
             
             if (t.isTile()) {
-                File script = GruntIOHelper.blender_setupTileScript(tmpDirFile, t);
+                File script = GruntIOHelper.blender_setupTileScript(
+                        outputDirFile, t);
                     
-                blenderCL = new String[9];
+                blenderCL = new String[11];
                 blenderCL[0] = blenderBin;
-                blenderCL[1] = "-b";
-                blenderCL[2] = blendFile.getCanonicalPath();
-                blenderCL[3] = "-P";
-                blenderCL[4] = script.getCanonicalPath();
-                blenderCL[5] = "-o";
-                blenderCL[6] = tmpDirFile.getCanonicalPath() + File.separator;
-                blenderCL[7] = "-f";
-                blenderCL[8] = Integer.toString(t.getFrame());
+                blenderCL[1] = "-noaudio";
+                blenderCL[2] = "-nojoystick";
+                blenderCL[3] = "-b";
+                blenderCL[4] = blendFile.getCanonicalPath();
+                blenderCL[5] = "-P";
+                blenderCL[6] = script.getCanonicalPath();
+                blenderCL[7] = "-o";
+                blenderCL[8] = outputDirFile.getCanonicalPath() + File.separator;
+                blenderCL[9] = "-f";
+                blenderCL[10] = Integer.toString(t.getFrame());
                 
 
 
             } else {    //render the entire frame
                 //example 'blender -b file.blend -o render_# -f 1
 
-                blenderCL = new String[7];
+                blenderCL = new String[9];
                 blenderCL[0] = blenderBin;
-                blenderCL[1] = "-b";
-                blenderCL[2] = blendFile.getCanonicalPath();
-                blenderCL[3] = "-o";
-                blenderCL[4] = tmpDirFile.getCanonicalPath() + File.separator;
-                blenderCL[5] = "-f";
-                blenderCL[6] = Integer.toString(t.getFrame());
+                blenderCL[1] = "-noaudio";
+                blenderCL[2] = "-nojoystick";
+                blenderCL[3] = "-b";
+                blenderCL[4] = blendFile.getCanonicalPath();
+                blenderCL[5] = "-o";
+                if(t.isAutoFileTranfer()) {
+                    blenderCL[6] = outputDirFile.getCanonicalPath()
+                            + File.separator;
+                } else { //manual
+                    blenderCL[6] = outputDirFile.getCanonicalPath()
+                            + File.separator + t.getOutputFilePrefix();
+                }
+                
+                blenderCL[7] = "-f";
+                blenderCL[8] = Integer.toString(t.getFrame());
                 
 
             }
         } else {
             log.severe("problems generating blender CL: " +
                     blendFile.getAbsolutePath() + " " +
-                    tmpDirFile.getAbsolutePath());
+                    outputDirFile.getAbsolutePath());
         }
 
         return blenderCL;

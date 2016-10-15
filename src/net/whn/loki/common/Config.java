@@ -1,7 +1,7 @@
 /**
  *Project: Loki Render - A distributed job queue manager.
- *Version 0.6.2
- *Copyright (C) 2009 Daniel Petersen
+ *Version 0.7.2
+ *Copyright (C) 2014 Daniel Petersen
  *Created on Sep 3, 2009
  */
 /**
@@ -56,10 +56,11 @@ public class Config implements Serializable, ICommon {
         log.setLevel(Level.FINE);
 
         //common
-        lokiVer = "0.6.2";
+        lokiVer = "0.7.2";
         role = LokiRole.ASK;
         lokiCfgDir = lcDir;
         fileCacheMap = new ConcurrentHashMap<String, ProjFile>();
+        autoFileHandling = true;
         cacheSizeLimit = 100 * bytesPerMB;
 
         //master
@@ -71,11 +72,11 @@ public class Config implements Serializable, ICommon {
         filePrefix = "";
 
         //multicast
-        multicastPort = 53913;
+        gruntMulticastPort = 53913;
         String multicastString = "232.26.11.4";
         multicastAddress = null;
         multicastTTL = 1;
-        announceInterval = 3000;
+        announceInterval = 1000;
         try {
             multicastAddress = InetAddress.getByName(multicastString);
         } catch (UnknownHostException ex) {
@@ -89,9 +90,41 @@ public class Config implements Serializable, ICommon {
         //grunt
         blenderBin = "blender";
         blendCacheMD5 = null;
-        remoteMaster = null;
+        autoDiscoverMaster = true;
+        masterAddress = null;
+        masterIPValid = false;
+        
+    }
+    
+    public void setAutoFileHandling(boolean auto) {
+        autoFileHandling = auto;
+    }
+    
+    public boolean getAutoFileHandling () {
+        return autoFileHandling;
+    }
+    
+    public boolean isMasterIPValid() {
+        return masterIPValid;
+    }
+    
+    public void setMasterIp(InetAddress mAddress) {
+        masterAddress = mAddress;
+        masterIPValid = true;
+    }
+    
+    public InetAddress getMasterIp() {
+        return masterAddress;
     }
 
+    public boolean getAutoDiscoverMaster() {
+        return autoDiscoverMaster;
+    }
+    
+    public void setAutoDiscoverMaster(boolean auto) {
+        autoDiscoverMaster = auto;
+    }
+    
     public String getLokiVer() {
         return lokiVer;
     }
@@ -108,8 +141,8 @@ public class Config implements Serializable, ICommon {
         return multicastAddress;
     }
 
-    public int getMulticastPort() {
-        return multicastPort;
+    public int getGruntMulticastPort() {
+        return gruntMulticastPort;
     }
 
     public int getMulticastTTL() {
@@ -150,14 +183,6 @@ public class Config implements Serializable, ICommon {
 
     public String getBlenderBin() {
         return blenderBin;
-    }
-
-    public void setRemoteMaster(String host) {
-        remoteMaster = host;
-    }
-
-    public String getRemoteMaster() {
-        return remoteMaster;
     }
 
     public void setActiveBlendCacheMD5(String bcMD5) {
@@ -307,9 +332,10 @@ public class Config implements Serializable, ICommon {
     private volatile long cacheSize; //in bytes
     private volatile long cacheSizeLimit; //in bytes
     private ConcurrentHashMap<String, ProjFile> fileCacheMap;
+    private boolean autoFileHandling;
     //multicast
     private InetAddress multicastAddress;
-    private int multicastPort;
+    private int gruntMulticastPort;
     private int multicastTTL;
     private int announceInterval;
     //TCP
@@ -326,7 +352,9 @@ public class Config implements Serializable, ICommon {
     private String blenderBin;
     private String blendCacheMD5;
     private String blendCacheDir;
-    private String remoteMaster;
+    private boolean autoDiscoverMaster;
+    private InetAddress masterAddress;
+    private boolean masterIPValid;
     //IO
     private static final Deflater fastDeflater = new Deflater(1);
     private static long time;

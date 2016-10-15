@@ -1,7 +1,7 @@
 /**
  *Project: Loki Render - A distributed job queue manager.
- *Version 0.6.2
- *Copyright (C) 2009 Daniel Petersen
+ *Version 0.7.2
+ *Copyright (C) 2014 Daniel Petersen
  *Created on Aug 17, 2009
  */
 /**
@@ -22,12 +22,18 @@ package net.whn.loki.master;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.StringTokenizer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import net.whn.loki.common.Config;
 import net.whn.loki.common.LokiForm;
@@ -49,16 +55,19 @@ public class AnnouncerR implements Runnable {
         cfg = c;
         dummyForm = dForm;
         announceInterval = cfg.getAnnounceInterval();
+        multicastSendPort = 53912;
         InetAddress localMachine = InetAddress.getLocalHost();
 
         masterInfo = localMachine.getHostName() + ";" + cfg.getLokiVer() +
                 ";" + Integer.toString(cfg.getConnectPort()) + ";";
+        
+        //mSocket = new DatagramSocket(multicastSendPort);
 
-        mSocket = new MulticastSocket(cfg.getMulticastPort());
-        mSocket.setTimeToLive(cfg.getMulticastTTL());
-        dgramPacketAnnounce = new DatagramPacket(masterInfo.getBytes(),
-                masterInfo.length(), cfg.getMulticastAddress(),
-                cfg.getMulticastPort());
+        dgramPacketAnnounce = new DatagramPacket(
+                masterInfo.getBytes(),
+                masterInfo.length(),
+                cfg.getMulticastAddress(),
+                cfg.getGruntMulticastPort());
 
 
     }
@@ -82,7 +91,8 @@ public class AnnouncerR implements Runnable {
             }
 
             try {
-                mSocket.send(dgramPacketAnnounce);
+                //mSocket.send(dgramPacketAnnounce);
+                sendAnnouncePackets();
                 failureCount = 0;
 
                 try {
@@ -103,9 +113,31 @@ public class AnnouncerR implements Runnable {
     final private Config cfg;
     final private LokiForm dummyForm;
     final private int announceInterval;
+    final private int multicastSendPort;
     final private String masterInfo;
     final private DatagramPacket dgramPacketAnnounce;
-    final private MulticastSocket mSocket;
+    //final private DatagramSocket mSocket;
+    
+    private void sendAnnouncePackets() throws SocketException, IOException {
+        Enumeration<NetworkInterface> nets = 
+                   NetworkInterface.getNetworkInterfaces();
+        
+        for (NetworkInterface netint : Collections.list(nets)){
+            Enumeration<InetAddress> addresses = netint.getInetAddresses();
+            if(!netint.isLoopback()) {
+
+                for (InetAddress inetAddress : Collections.list(addresses)) {
+                    if(inetAddress instanceof Inet4Address) {
+                        DatagramSocket sock =
+                                new DatagramSocket(
+                                        multicastSendPort, inetAddress);
+                        sock.send(dgramPacketAnnounce);
+                        sock.close();
+                    } 
+                }
+            }
+        }//end for
+    }
 
     private String detectMaster() {
         byte[] buf = new byte[256];
@@ -113,7 +145,7 @@ public class AnnouncerR implements Runnable {
 
         try {
             //throws IOE
-            MulticastSocket mSock = new MulticastSocket(cfg.getMulticastPort());
+            MulticastSocket mSock = new MulticastSocket(cfg.getGruntMulticastPort());
 
             //throws IOE
             mSock.joinGroup(cfg.getMulticastAddress()); //TODO - throws IO -> quit!

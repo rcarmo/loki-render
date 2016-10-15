@@ -1,7 +1,7 @@
 /**
  *Project: Loki Render - A distributed job queue manager.
- *Version 0.6.2
- *Copyright (C) 2009 Daniel Petersen
+ *Version 0.7.2
+ *Copyright (C) 2014 Daniel Petersen
  *Created on Sep 2, 2009
  */
 /**
@@ -102,13 +102,15 @@ public class IOHelper {
 
         tmpDir = new File(lokiBaseDir, "tmp");
 
-        //now let's check if tmp dir already exists; if not create it
-        if (!tmpDir.isDirectory()) {
-            //doesn't exist; create it
-            if (!tmpDir.mkdir()) {
-                log.severe("couldn't create directory:" + tmpDir.toString());
-                return null;
-            }
+        //if tmp dir exists, delete it and any contents it may have
+        if(tmpDir.isDirectory()) {
+            deleteDirectory(tmpDir);
+        }
+        
+        //create empty tmpDir
+        if (!tmpDir.mkdir()) {
+            log.severe("couldn't create directory:" + tmpDir.toString());
+            return null;
         }
 
         if (!isDirWritable(tmpDir)) {
@@ -479,4 +481,6 @@ public class IOHelper {
             in.close();
         }
     }
+    
+    
 }

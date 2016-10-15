@@ -1,7 +1,7 @@
 /**
  *Project: Loki Render - A distributed job queue manager.
- *Version 0.6.2
- *Copyright (C) 2009 Daniel Petersen
+ *Version 0.7.2
+ *Copyright (C) 2014 Daniel Petersen, Gustavo Alejandro Moreno Martínez
  *Created on Oct 27, 2009
  */
 /**
@@ -223,20 +223,29 @@ public class GruntIOHelper extends IOHelper {
         TileBorder b = t.getTileBorder();
 
         PrintWriter fout = new PrintWriter(new FileWriter(script));
-        fout.println("import Blender");
-        fout.println("from Blender import Scene");
+        fout.println("import bpy");
+        fout.println("import os");
         fout.println("left = " + Float.toString(b.getLeft()));
         fout.println("right = " + Float.toString(b.getRight()));
         fout.println("bottom = " + Float.toString(b.getBottom()));
         fout.println("top = " + Float.toString(b.getTop()));
-        fout.println("scene  = Scene.GetCurrent()");
-        fout.println("context = scene.getRenderingContext()");
-        fout.println("context.enableBorderRender(1)");
-        fout.println("context.enableRGBAColor()");
-        fout.println("context.setImageType(Scene.Render.PNG)");
-        fout.println("context.enableExtensions(1)");
-        fout.println("context.setBorder(left, bottom, right, top)");
-
+        fout.println("scene  = bpy.context.scene");
+        fout.println("render = scene.render");
+        fout.println("render.use_border = True");
+        fout.println("render.use_crop_to_border = True");
+        fout.println("render.image_settings.file_format = 'PNG'");
+        fout.println("render.image_settings.color_mode = 'RGBA'");
+        fout.println("render.use_file_extension = True");
+        fout.println("render.border_max_x = right");
+        fout.println("render.border_min_x = left");
+        fout.println("render.border_max_y = top");
+        fout.println("render.border_min_y = bottom");
+        // from the location of the fetched file (blendcache) to ../tmp/
+        fout.println("render.filepath = os.path.dirname(bpy.data.filepath) + os.sep + \'..\' + os.sep + \'tmp\' + os.sep");
+        fout.println("scene.frame_start = " + t.getFrame());
+        fout.println("scene.frame_end = " + t.getFrame());
+        // if it's not used this line, the scene uses their original parameters...
+        fout.println("bpy.ops.render.render(animation=True)");
         fout.flush();
         fout.close();
         return script;

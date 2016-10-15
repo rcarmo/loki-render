@@ -1,7 +1,7 @@
 /**
  *Project: Loki Render - A distributed job queue manager.
- *Version 0.6.2
- *Copyright (C) 2009 Daniel Petersen
+ *Version 0.7.2
+ *Copyright (C) 2014 Daniel Petersen
  *Created on Sep 20, 2009
  */
 
@@ -30,7 +30,8 @@ package net.whn.loki.master;
  */
 public class JobFormInput {
     JobFormInput(String tType, String n, String pFile, String oFile, String p,
-            int fTask, int lTask, int aFailures, boolean tEnabled, int m) {
+            int fTask, int lTask, int aFailures, boolean tEnabled, int m,
+            boolean aFileTransfer) {
 
         taskType = tType;
         name = n;
@@ -43,7 +44,12 @@ public class JobFormInput {
         allowedFailures = aFailures;
         tileEnabled = tEnabled;
         tileMultiplier = m;
+        autoFileTransfer = aFileTransfer;
 
+    }
+    
+    public boolean getAutoFileTransfer() {
+        return autoFileTransfer;
     }
 
     public int getAllowedFailures() {
@@ -103,4 +109,5 @@ public class JobFormInput {
     private final int allowedFailures;
     private final boolean tileEnabled;
     private final int tileMultiplier;
+    private final boolean autoFileTransfer;
 }

@@ -1,7 +1,7 @@
 /**
  *Project: Loki Render - A distributed job queue manager.
- *Version 0.6.2
- *Copyright (C) 2009 Daniel Petersen
+ *Version 0.7.2
+ *Copyright (C) 2014 Daniel Petersen, Gustavo Alejandro Moreno Martínez
  *Created on Oct 20, 2009
  */
 /**
@@ -39,6 +39,7 @@ public class ImageHelper {
 
         long start = System.currentTimeMillis();
 
+        // first check that it has all images
         File[] inputFiles = new File[tileCount];
         for (int i = 0; i < tileCount; i++) {
             inputFiles[i] = new File(tileDir, Integer.toString(i) + ".png");
@@ -50,13 +51,16 @@ public class ImageHelper {
         }
 
         try {
-            //grab tile 0
-            BufferedImage image = ImageIO.read(inputFiles[0]);
-
-            for (int t = 1; t < tileCount; t++) {
-                BufferedImage nextImage = ImageIO.read(inputFiles[t]);
-                image = combineImages(image, nextImage);
-            }
+            int divisions = (int)Math.sqrt((double)inputFiles.length);
+            int numImage = 0;
+            // create an array of BufferedImages from the input files inverting the order in the rows
+            // (it's cropped from bottom to top but it's composited from top to bottom)
+            BufferedImage[] bufferedImages = new BufferedImage[inputFiles.length];  
+            for (int row = divisions - 1; row >= 0; row--)
+                for (int order = 0; order < divisions; order++)
+                    bufferedImages[numImage++] = ImageIO.read(inputFiles[row*divisions + order]);  
+            
+            BufferedImage image = combineImages(bufferedImages);
             ImageIO.write(image, "png", outputFile);
 
         } catch (IOException ex) {
@@ -112,32 +116,39 @@ public class ImageHelper {
             "net.whn.loki.master.ImageHelper";
     private static final Logger log = Logger.getLogger(className);
 
-    private static BufferedImage combineImages(BufferedImage i1,
-            BufferedImage i2) {
-
-        if (i1 == null || i2 == null) {
-            log.warning("null parameter");
-            return null;
+    private static BufferedImage combineImages(BufferedImage bufferedImages[]) {
+        int divisions = (int)Math.sqrt((double)bufferedImages.length);
+        int actualImage = 0;
+        // first we stablish the width and height of the final image
+        int finalWidth = 0;
+        int finalHeight = 0;
+        for (int i = 0; i < divisions; i++){
+            finalWidth += bufferedImages[i].getWidth();
+            finalHeight += bufferedImages[i*divisions].getHeight();
         }
+//        BufferedImage finalImg = new BufferedImage(finalWidth, finalHeight, bufferedImages[0].getType());
+        BufferedImage finalImg = new BufferedImage(finalWidth, finalHeight, BufferedImage.TYPE_INT_ARGB);
 
-        int width = i1.getWidth();
-        int height = i1.getHeight();
-
-        if (width != i2.getWidth() || height != i2.getHeight()) {
-            log.warning("image dimensions not equal");
-            return null;
-        }
-
-
-        BufferedImage i3 = new BufferedImage(width, height,
-                BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2d = i3.createGraphics();
-        g2d.drawImage(i1, null, 0, 0);
-        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
-                1.0F));
-        g2d.drawImage(i2, null, 0, 0);
-        g2d.dispose();
-
-        return i3;
+        int rowWidth = 0;
+        int rowHeight = 0;
+        for (int heightImage = 0; heightImage < divisions; heightImage++) {
+            for (int widthImage = 0; widthImage < divisions; widthImage++) {
+                // check every image
+                if (bufferedImages[actualImage] == null) {
+                    log.warning("bufferedImages element has null parameter");
+                    return null;
+                }
+                // adding to the final image
+                finalImg.createGraphics().drawImage(bufferedImages[actualImage], rowWidth, rowHeight, null);  
+                rowWidth += bufferedImages[actualImage].getWidth();
+                actualImage++;  
+            }  
+            // after processing the row we get the height of the last processed image 
+            // (it's the same for all in the row) and locate at the begining of the row
+            rowHeight += bufferedImages[actualImage - 1].getHeight();
+            rowWidth = 0;
+        }  
+        
+        return finalImg;
     }
 }

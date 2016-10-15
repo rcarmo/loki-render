@@ -57,6 +57,11 @@ public class JobDetailsForm extends LokiForm {
         lblOutputDir.setText(job.getOutputDirFile().getAbsolutePath());
         lblFilePrefix.setText(job.getFilePrefix());
         lblTileRendering.setText(job.getTileStr());
+        if(job.isAutoFileTransfer()) {
+            lblAutoFileTransfer.setText("enabled");
+        } else {
+            lblAutoFileTransfer.setText("disabled");
+        }
 
         //Tasks
         lblReady.setText(Integer.toString(job.getReady()));
@@ -138,6 +143,8 @@ public class JobDetailsForm extends LokiForm {
         lblLastFrame = new javax.swing.JLabel();
         jLabel13 = new javax.swing.JLabel();
         lblTileRendering = new javax.swing.JLabel();
+        jLabel14 = new javax.swing.JLabel();
+        lblAutoFileTransfer = new javax.swing.JLabel();
         pnlTaskDetail = new javax.swing.JPanel();
         jLabel23 = new javax.swing.JLabel();
         cbxOutput = new javax.swing.JComboBox();
@@ -184,11 +191,23 @@ public class JobDetailsForm extends LokiForm {
 
         lblFirstFrame.setText("0");
 
+        lblProjFile.setText("null");
+
+        lblOutputDir.setText("null");
+
+        lblFilePrefix.setText("null");
+
         jLabel8.setText("to");
 
         lblLastFrame.setText("0");
 
         jLabel13.setText("tile rendering:");
+
+        lblTileRendering.setText("null");
+
+        jLabel14.setText("auto file transfer:");
+
+        lblAutoFileTransfer.setText("null");
 
         javax.swing.GroupLayout pnlDetailLayout = new javax.swing.GroupLayout(pnlDetail);
         pnlDetail.setLayout(pnlDetailLayout);
@@ -197,14 +216,15 @@ public class JobDetailsForm extends LokiForm {
             .addGroup(pnlDetailLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pnlDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jLabel13)
                     .addGroup(pnlDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                         .addComponent(jLabel1)
                         .addComponent(jLabel2)
                         .addComponent(jLabel3)
                         .addComponent(jLabel4)
                         .addComponent(jLabel5)
-                        .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jLabel14)
+                    .addComponent(jLabel13))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pnlDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(lblType)
@@ -218,7 +238,8 @@ public class JobDetailsForm extends LokiForm {
                     .addComponent(lblProjFile)
                     .addComponent(lblOutputDir)
                     .addComponent(lblFilePrefix)
-                    .addComponent(lblTileRendering))
+                    .addComponent(lblTileRendering)
+                    .addComponent(lblAutoFileTransfer))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         pnlDetailLayout.setVerticalGroup(
@@ -250,9 +271,13 @@ public class JobDetailsForm extends LokiForm {
                     .addComponent(jLabel6)
                     .addComponent(lblFilePrefix))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(pnlDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(pnlDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel13)
                     .addComponent(lblTileRendering))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(pnlDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel14)
+                    .addComponent(lblAutoFileTransfer))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -324,9 +349,7 @@ public class JobDetailsForm extends LokiForm {
             .addGroup(pnlTaskTallyLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pnlTaskTallyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(pnlTaskTallyLayout.createSequentialGroup()
-                        .addGap(16, 16, 16)
-                        .addComponent(jLabel10))
+                    .addComponent(jLabel10)
                     .addComponent(jLabel7)
                     .addComponent(jLabel11)
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, pnlTaskTallyLayout.createSequentialGroup()
@@ -357,8 +380,7 @@ public class JobDetailsForm extends LokiForm {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pnlTaskTallyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel11)
-                    .addComponent(lblFailed))
-                .addContainerGap(81, Short.MAX_VALUE))
+                    .addComponent(lblFailed)))
         );
 
         btnClose.setText("Close");
@@ -370,7 +392,7 @@ public class JobDetailsForm extends LokiForm {
 
         jLabel21.setText("View generated:");
 
-        lblViewTime.setText("fghj");
+        lblViewTime.setText("null");
 
         javax.swing.GroupLayout pnlBottomLayout = new javax.swing.GroupLayout(pnlBottom);
         pnlBottom.setLayout(pnlBottomLayout);
@@ -381,8 +403,8 @@ public class JobDetailsForm extends LokiForm {
                 .addComponent(jLabel21)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(lblViewTime)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 653, Short.MAX_VALUE)
-                .addComponent(btnClose, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(btnClose, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         pnlBottomLayout.setVerticalGroup(
@@ -420,14 +442,14 @@ public class JobDetailsForm extends LokiForm {
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
                     .addComponent(jLabel12)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 320, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(28, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addComponent(jLabel12)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 497, Short.MAX_VALUE))
+                .addComponent(jScrollPane1))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -455,15 +477,14 @@ public class JobDetailsForm extends LokiForm {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(pnlDetail, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(pnlTaskTally, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(pnlTaskDetail, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(pnlTaskTally, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(pnlTaskDetail, javax.swing.GroupLayout.PREFERRED_SIZE, 268, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(pnlBottom, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addComponent(pnlBottom, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         pack();
@@ -495,6 +516,7 @@ public class JobDetailsForm extends LokiForm {
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel21;
     private javax.swing.JLabel jLabel23;
@@ -508,6 +530,7 @@ public class JobDetailsForm extends LokiForm {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JLabel lblAutoFileTransfer;
     private javax.swing.JLabel lblDone;
     private javax.swing.JLabel lblFailed;
     private javax.swing.JLabel lblFilePrefix;

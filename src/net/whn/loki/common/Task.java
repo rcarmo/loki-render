@@ -1,7 +1,7 @@
 /**
  *Project: Loki Render - A distributed job queue manager.
- *Version 0.6.2
- *Copyright (C) 2009 Daniel Petersen
+ *Version 0.7.2
+ *Copyright (C) 2014 Daniel Petersen
  *Created on Aug 12, 2009
  */
 /**
@@ -33,7 +33,8 @@ import java.io.Serializable;
 public class Task implements ICommon, Serializable, Cloneable {
 
     public Task(JobType t, int f, long jID, String m, String bcm, 
-            String bcd, long s, String oDir, String oPrefix, boolean tRender,
+            String bcd, long s, String oDir, String oPrefix, 
+            File oPFile, boolean aFileTransfer, boolean tRender,
             int tl, int tff,
             TileBorder tBorder) {
         taskID = taskIDCounter++;
@@ -47,6 +48,8 @@ public class Task implements ICommon, Serializable, Cloneable {
         projectFileSize = s;
         outputDir = oDir;
         outputFilePrefix = oPrefix;
+        origProjFile = oPFile;
+        autoFileTransfer = aFileTransfer;
         tileRender = tRender;
         tile = tl;
         tilesForFrame = tff;
@@ -61,7 +64,7 @@ public class Task implements ICommon, Serializable, Cloneable {
         stdout = null;
         errout = null;
         taskTime = null;
-        outputFileName = null;
+        tmpOutputFileName = null;
         outputFileExt = null;
         outputFileMD5 = null;
         outputFileSize = -1;
@@ -178,7 +181,7 @@ public class Task implements ICommon, Serializable, Cloneable {
     }
 
     public String getOutputFileName() {
-        return outputFileName;
+        return tmpOutputFileName;
     }
 
     public String getOutputFileExt() {
@@ -200,6 +203,18 @@ public class Task implements ICommon, Serializable, Cloneable {
     public String getOutputFilePrefix() {
         return outputFilePrefix;
     }
+    
+    public File getOrigProjFile() {
+        return origProjFile;
+    }
+    
+    public boolean isAutoFileTranfer() {
+        return autoFileTransfer;
+    }
+    
+    public void setErrout(String eout) {
+        errout = eout;
+    }
 
     public void setInitialOutput(String[] tCL, String sOut, String eOut) {
         taskCL = tCL;
@@ -217,10 +232,12 @@ public class Task implements ICommon, Serializable, Cloneable {
         taskTime = CLHelper.extractBlenderRenderTime(stdout);
         File outputFile = new File(
                 CLHelper.blender_getRenderedFileName(stdout));
-        outputFileName = outputFile.getName();
-        outputFileExt = outputFileName.substring(
-                outputFileName.lastIndexOf('.') + 1, outputFileName.length());
-        outputFileMD5 = IOHelper.generateMD5(outputFile);
+        tmpOutputFileName = outputFile.getName();
+        outputFileExt = tmpOutputFileName.substring(
+                tmpOutputFileName.lastIndexOf('.') + 1, tmpOutputFileName.length());
+        if(autoFileTransfer) {
+            outputFileMD5 = IOHelper.generateMD5(outputFile);
+        }
         outputFileSize = outputFile.length();
     }
 
@@ -237,6 +254,8 @@ public class Task implements ICommon, Serializable, Cloneable {
     private final long projectFileSize;
     private final String outputDir;
     private final String outputFilePrefix;
+    private final File origProjFile;
+    private final boolean autoFileTransfer;
     private final boolean tileRender;
     private final int tile;
     private final int tilesForFrame;
@@ -244,12 +263,13 @@ public class Task implements ICommon, Serializable, Cloneable {
     private volatile TaskStatus status;
     private long gruntID;
     private String gruntName;
+    
     //output
     private String[] taskCL;
     private String stdout;
     private String errout;
     private String taskTime;
-    private String outputFileName;
+    private String tmpOutputFileName;
     private String outputFileExt;
     private String outputFileMD5;
     private long outputFileSize;

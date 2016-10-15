@@ -6,6 +6,7 @@
   </Properties>
   <SyntheticProperties>
     <SyntheticProperty name="formSizePolicy" type="int" value="1"/>
+    <SyntheticProperty name="generateCenter" type="boolean" value="false"/>
   </SyntheticProperties>
   <AuxValues>
     <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="0"/>
@@ -49,18 +50,17 @@
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="1" attributes="0">
                   <Group type="102" attributes="0">
-                      <Group type="103" groupAlignment="1" attributes="0">
+                      <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="pnlDetail" min="-2" max="-2" attributes="1"/>
-                          <Component id="pnlTaskTally" alignment="1" max="32767" attributes="1"/>
+                          <Component id="pnlTaskTally" min="-2" max="-2" attributes="1"/>
                       </Group>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="pnlTaskDetail" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="32767" attributes="0"/>
+                      <Component id="pnlTaskDetail" min="-2" pref="268" max="-2" attributes="0"/>
                   </Group>
                   <Component id="jPanel2" max="32767" attributes="1"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="pnlBottom" min="-2" max="-2" attributes="0"/>
-              <EmptySpace min="-2" max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -81,7 +81,6 @@
               <Group type="102" alignment="0" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="1" attributes="0">
-                      <Component id="jLabel13" alignment="1" min="-2" max="-2" attributes="0"/>
                       <Group type="103" alignment="1" groupAlignment="1" max="-2" attributes="0">
                           <Component id="jLabel1" alignment="1" min="-2" max="-2" attributes="0"/>
                           <Component id="jLabel2" alignment="1" min="-2" max="-2" attributes="0"/>
@@ -90,6 +89,8 @@
                           <Component id="jLabel5" alignment="1" min="-2" max="-2" attributes="0"/>
                           <Component id="jLabel6" alignment="1" max="32767" attributes="1"/>
                       </Group>
+                      <Component id="jLabel14" alignment="1" min="-2" max="-2" attributes="0"/>
+                      <Component id="jLabel13" alignment="1" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
@@ -106,6 +107,7 @@
                       <Component id="lblOutputDir" min="-2" max="-2" attributes="0"/>
                       <Component id="lblFilePrefix" min="-2" max="-2" attributes="0"/>
                       <Component id="lblTileRendering" min="-2" max="-2" attributes="0"/>
+                      <Component id="lblAutoFileTransfer" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="32767" attributes="0"/>
               </Group>
@@ -146,9 +148,14 @@
                       <Component id="lblFilePrefix" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <Component id="jLabel13" alignment="0" min="-2" max="-2" attributes="0"/>
+                      <Component id="lblTileRendering" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="jLabel13" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="lblTileRendering" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="jLabel14" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="lblAutoFileTransfer" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="32767" attributes="0"/>
               </Group>
@@ -202,10 +209,19 @@
           </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="lblProjFile">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="null"/>
+          </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="lblOutputDir">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="null"/>
+          </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="lblFilePrefix">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="null"/>
+          </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel8">
           <Properties>
@@ -223,6 +239,19 @@
           </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="lblTileRendering">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="null"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JLabel" name="jLabel14">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="auto file transfer:"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JLabel" name="lblAutoFileTransfer">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="null"/>
+          </Properties>
         </Component>
       </SubComponents>
     </Container>
@@ -321,10 +350,7 @@
               <Group type="102" alignment="0" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="1" attributes="0">
-                      <Group type="102" alignment="1" attributes="0">
-                          <EmptySpace min="-2" pref="16" max="-2" attributes="0"/>
-                          <Component id="jLabel10" min="-2" max="-2" attributes="0"/>
-                      </Group>
+                      <Component id="jLabel10" alignment="1" min="-2" max="-2" attributes="0"/>
                       <Component id="jLabel7" min="-2" max="-2" attributes="0"/>
                       <Component id="jLabel11" min="-2" max="-2" attributes="0"/>
                       <Group type="102" alignment="0" attributes="0">
@@ -365,7 +391,6 @@
                       <Component id="jLabel11" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="lblFailed" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace pref="81" max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -423,8 +448,8 @@
                   <Component id="jLabel21" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="lblViewTime" min="-2" max="-2" attributes="0"/>
-                  <EmptySpace pref="653" max="32767" attributes="0"/>
-                  <Component id="btnClose" min="-2" pref="78" max="-2" attributes="0"/>
+                  <EmptySpace max="32767" attributes="0"/>
+                  <Component id="btnClose" min="-2" pref="90" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
               </Group>
           </Group>
@@ -459,7 +484,7 @@
         </Component>
         <Component class="javax.swing.JLabel" name="lblViewTime">
           <Properties>
-            <Property name="text" type="java.lang.String" value="fghj"/>
+            <Property name="text" type="java.lang.String" value="null"/>
           </Properties>
         </Component>
       </SubComponents>
@@ -475,7 +500,7 @@
                       <Component id="jLabel12" alignment="2" min="-2" max="-2" attributes="0"/>
                       <Component id="jScrollPane1" alignment="2" min="-2" pref="320" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace max="32767" attributes="0"/>
+                  <EmptySpace pref="28" max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -484,7 +509,7 @@
               <Group type="102" alignment="0" attributes="0">
                   <Component id="jLabel12" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
-                  <Component id="jScrollPane1" pref="497" max="32767" attributes="1"/>
+                  <Component id="jScrollPane1" max="32767" attributes="1"/>
               </Group>
           </Group>
         </DimensionLayout>

@@ -1,7 +1,7 @@
 /**
  *Project: Loki Render - A distributed job queue manager.
- *Version 0.6.2
- *Copyright (C) 2009 Daniel Petersen
+ *Version 0.7.2
+ *Copyright (C) 2014 Daniel Petersen
  *Created on Oct 30, 2009
  */
 /**
@@ -20,6 +20,8 @@
  */
 package net.whn.loki.error;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import net.whn.loki.common.LokiForm;
@@ -39,8 +41,12 @@ public class ErrorHelper {
      */
     public static void outputToLogMsgAndKill(LokiForm form, boolean gruntcl, 
             Logger log, String text, Throwable t) {
-        String msg = text + t.toString() + "\n" + t.getMessage();
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        t.printStackTrace(pw);
+        String msg = text + t.toString() + "\n" + sw.toString();
         log.severe(msg);
+        
         if(!gruntcl) {
             JOptionPane.showMessageDialog(form,
                     msg, "Fatal Error",

@@ -11,6 +11,7 @@
   </Properties>
   <SyntheticProperties>
     <SyntheticProperty name="formSizePolicy" type="int" value="1"/>
+    <SyntheticProperty name="generateCenter" type="boolean" value="false"/>
   </SyntheticProperties>
   <AuxValues>
     <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="0"/>
@@ -30,13 +31,14 @@
           <Group type="102" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="1" attributes="0">
-                  <Component id="jPanel2" alignment="0" max="32767" attributes="0"/>
-                  <Component id="jPanel1" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Component id="pnlTileRendering" alignment="0" max="32767" attributes="0"/>
                   <Group type="102" alignment="1" attributes="0">
-                      <Component id="cancelButton" linkSize="4" min="-2" pref="80" max="-2" attributes="0"/>
-                      <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Component id="saveButton" linkSize="4" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                      <Component id="cancelButton" min="-2" pref="102" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="saveButton" min="-2" pref="97" max="-2" attributes="0"/>
                   </Group>
+                  <Component id="jPanel1" alignment="0" max="32767" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
@@ -48,13 +50,13 @@
               <EmptySpace max="-2" attributes="0"/>
               <Component id="jPanel1" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="jPanel2" min="-2" max="-2" attributes="0"/>
-              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Component id="pnlTileRendering" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="32767" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="saveButton" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="cancelButton" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace max="32767" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -72,7 +74,7 @@
       <Layout>
         <DimensionLayout dim="0">
           <Group type="103" groupAlignment="0" attributes="0">
-              <Group type="102" attributes="0">
+              <Group type="102" alignment="0" attributes="0">
                   <EmptySpace min="-2" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Component id="lastFrameLabel" alignment="1" min="-2" max="-2" attributes="0"/>
@@ -84,21 +86,26 @@
                       <Component id="typeLabel" alignment="1" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                      <Component id="txtLastFrame" linkSize="5" alignment="0" min="-2" pref="84" max="-2" attributes="3"/>
-                      <Component id="txtFirstFrame" linkSize="5" alignment="0" min="-2" pref="94" max="-2" attributes="3"/>
-                      <Component id="txtOutputPrefix" linkSize="6" alignment="0" min="-2" pref="171" max="-2" attributes="0"/>
-                      <Component id="txtName" linkSize="6" alignment="0" min="-2" pref="175" max="-2" attributes="3"/>
-                      <Component id="cbxJobType" alignment="0" min="-2" max="-2" attributes="1"/>
-                      <Component id="txtProjectFile" alignment="0" pref="318" max="32767" attributes="3"/>
-                      <Component id="txtOutputDir" alignment="0" max="32767" attributes="1"/>
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <Component id="cbxAutoFileTransfer" min="-2" max="-2" attributes="0"/>
+                      <Group type="102" attributes="0">
+                          <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                              <Component id="txtLastFrame" linkSize="5" alignment="0" min="-2" pref="84" max="-2" attributes="3"/>
+                              <Component id="txtFirstFrame" linkSize="5" alignment="0" min="-2" pref="94" max="-2" attributes="3"/>
+                              <Component id="txtOutputPrefix" linkSize="6" alignment="0" min="-2" pref="171" max="-2" attributes="0"/>
+                              <Component id="txtName" linkSize="6" alignment="0" min="-2" pref="175" max="-2" attributes="3"/>
+                              <Component id="cbxJobType" alignment="0" min="-2" max="-2" attributes="1"/>
+                              <Component id="txtProjectFile" alignment="0" pref="318" max="32767" attributes="3"/>
+                              <Component id="txtOutputDir" alignment="0" max="32767" attributes="1"/>
+                          </Group>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Component id="FileBrowseButton" max="32767" attributes="1"/>
+                              <Component id="OutputBrowseButton" max="32767" attributes="1"/>
+                          </Group>
+                      </Group>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                      <Component id="FileBrowseButton" max="32767" attributes="1"/>
-                      <Component id="OutputBrowseButton" alignment="0" pref="70" max="32767" attributes="1"/>
-                  </Group>
-                  <EmptySpace max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -142,6 +149,8 @@
                       <Component id="lastFrameLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="txtLastFrame" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
+                  <EmptySpace type="separate" max="-2" attributes="0"/>
+                  <Component id="cbxAutoFileTransfer" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="32767" attributes="0"/>
               </Group>
           </Group>
@@ -243,6 +252,16 @@
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="txtOutputPrefixActionPerformed"/>
           </Events>
         </Component>
+        <Component class="javax.swing.JCheckBox" name="cbxAutoFileTransfer">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Enable automatic file transfer"/>
+            <Property name="toolTipText" type="java.lang.String" value="Uncheck this if you have setup a network share with project files that all nodes can access.&#xa;Useful for large projects with lots of texture files, etc."/>
+          </Properties>
+          <Events>
+            <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="cbxAutoFileTransferStateChanged"/>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cbxAutoFileTransferActionPerformed"/>
+          </Events>
+        </Component>
       </SubComponents>
     </Container>
     <Component class="javax.swing.JButton" name="cancelButton">
@@ -257,13 +276,22 @@
     <Component class="javax.swing.JButton" name="saveButton">
       <Properties>
         <Property name="text" type="java.lang.String" value="Save"/>
+        <Property name="maximumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+          <Dimension value="[60, 30]"/>
+        </Property>
+        <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+          <Dimension value="[60, 30]"/>
+        </Property>
         <Property name="name" type="java.lang.String" value="saveButton" noResource="true"/>
+        <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+          <Dimension value="[60, 30]"/>
+        </Property>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="saveButtonActionPerformed"/>
       </Events>
     </Component>
-    <Container class="javax.swing.JPanel" name="jPanel2">
+    <Container class="javax.swing.JPanel" name="pnlTileRendering">
       <Properties>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
@@ -279,47 +307,49 @@
               <Group type="102" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="checkboxEnableTile" min="-2" max="-2" attributes="0"/>
+                      <Component id="cbxEnableTile" min="-2" max="-2" attributes="0"/>
                       <Group type="102" alignment="0" attributes="0">
                           <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="cbxTileMultiplier" min="-2" max="-2" attributes="0"/>
+                          <Component id="comboboxTileMultiplier" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="lblMultiplier" min="-2" max="-2" attributes="0"/>
+                          <Component id="lblMultiplier" min="-2" pref="134" max="-2" attributes="0"/>
                       </Group>
                   </Group>
-                  <EmptySpace pref="392" max="32767" attributes="0"/>
+                  <EmptySpace pref="282" max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
         <DimensionLayout dim="1">
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" alignment="0" attributes="0">
-                  <Component id="checkboxEnableTile" min="-2" max="-2" attributes="0"/>
+                  <Component id="cbxEnableTile" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="jLabel3" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="cbxTileMultiplier" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="lblMultiplier" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <Component id="lblMultiplier" alignment="1" max="32767" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="jLabel3" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="comboboxTileMultiplier" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
                   </Group>
-                  <EmptySpace max="32767" attributes="0"/>
+                  <EmptySpace min="-2" pref="12" max="-2" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
       </Layout>
       <SubComponents>
-        <Component class="javax.swing.JCheckBox" name="checkboxEnableTile">
+        <Component class="javax.swing.JCheckBox" name="cbxEnableTile">
           <Properties>
             <Property name="text" type="java.lang.String" value="Enabled"/>
           </Properties>
           <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="checkboxEnableTileActionPerformed"/>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cbxEnableTileActionPerformed"/>
           </Events>
         </Component>
-        <Component class="javax.swing.JComboBox" name="cbxTileMultiplier">
+        <Component class="javax.swing.JComboBox" name="comboboxTileMultiplier">
           <Properties>
             <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-              <StringArray count="9">
+              <StringArray count="19">
                 <StringItem index="0" value="2"/>
                 <StringItem index="1" value="3"/>
                 <StringItem index="2" value="4"/>
@@ -329,13 +359,22 @@
                 <StringItem index="6" value="8"/>
                 <StringItem index="7" value="9"/>
                 <StringItem index="8" value="10"/>
+                <StringItem index="9" value="11"/>
+                <StringItem index="10" value="12"/>
+                <StringItem index="11" value="13"/>
+                <StringItem index="12" value="14"/>
+                <StringItem index="13" value="15"/>
+                <StringItem index="14" value="16"/>
+                <StringItem index="15" value="17"/>
+                <StringItem index="16" value="18"/>
+                <StringItem index="17" value="19"/>
+                <StringItem index="18" value="20"/>
               </StringArray>
             </Property>
             <Property name="toolTipText" type="java.lang.String" value="select a multiplier to specify how many tiles parts will be used"/>
-            <Property name="enabled" type="boolean" value="false"/>
           </Properties>
           <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cbxTileMultiplierActionPerformed"/>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="comboboxTileMultiplierActionPerformed"/>
           </Events>
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel3">
@@ -346,7 +385,6 @@
         <Component class="javax.swing.JLabel" name="lblMultiplier">
           <Properties>
             <Property name="toolTipText" type="java.lang.String" value="the total number of tiles parts"/>
-            <Property name="enabled" type="boolean" value="false"/>
           </Properties>
         </Component>
       </SubComponents>

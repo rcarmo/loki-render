@@ -1,7 +1,7 @@
 /**
  *Project: Loki Render - A distributed job queue manager.
- *Version 0.6.2
- *Copyright (C) 2009 Daniel Petersen
+ *Version 0.7.2
+ *Copyright (C) 2014 Daniel Petersen
  *Created on Aug 17, 2009
  */
 /**
@@ -20,8 +20,6 @@
  */
 package net.whn.loki.grunt;
 
-import java.net.UnknownHostException;
-import java.util.logging.Level;
 import net.whn.loki.IO.GruntIOHelper;
 import net.whn.loki.CL.CLHelper;
 import net.whn.loki.master.MasterEQCaller;
@@ -34,11 +32,16 @@ import java.io.InvalidClassException;
 import java.io.OptionalDataException;
 import java.io.StreamCorruptedException;
 import java.net.DatagramPacket;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.NetworkInterface;
 
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.StringTokenizer;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -82,10 +85,10 @@ public class GruntR implements Runnable, ICommon {
         gruntForm = null;
         masterLokiVer = null;
         masterName = null;
-        masterAddress = null;
         mSock = null;
 
         localShutdown = false;
+        gruntQuitting = false;
 
         taskHandler = Executors.newSingleThreadExecutor();
 
@@ -96,47 +99,68 @@ public class GruntR implements Runnable, ICommon {
     @SuppressWarnings("unchecked")
     public void run() {
         do {    //while !localShutdown
-            if (findMaster()) {
+            if (getMasterAddress()) {
                 try {   //initial setup steps in this try
-
-                    //throws IOE if get any problems w/ socket/stream setup
-                    gruntStreamSock =
-                            new GruntStreamSocket(masterAddress,
+                    
+                    boolean connected = false;
+                    while(!connected && !localShutdown) {
+                        try {
+                           //throws IOE if get any problems w/ socket/stream setup
+                            gruntStreamSock =
+                            new GruntStreamSocket(cfg.getMasterIp(),
                             cfg.getConnectPort());
-
-                    machineUpdateHandler =
-                            Executors.newSingleThreadScheduledExecutor();
-
-                    String msg = "online with master '" + masterName + "'";
-                    if (gruntForm != null) {
-                        GruntEQCaller.invokeUpdateConnectionLbl(gruntForm,
-                                msg);
-                    } else {
-                        System.out.println(msg);
+                            connected = true;
+                        } catch (IOException ioex) {
+                            try {
+                                Thread.sleep(3000);
+                            } catch (InterruptedException ex) {
+                                
+                            }
+                        }
                     }
+                    
+                    if(!localShutdown) {
+                        
+                        machineUpdateHandler =
+                                Executors.newSingleThreadScheduledExecutor();
 
-                    final MachineUpdateR muR = new MachineUpdateR(
-                            gruntStreamSock);
+                        masterName = cfg.getMasterIp().getHostName();
+                        String msg = "online with master '" + masterName + "'";
+                        if (gruntForm != null) {
+                            GruntEQCaller.invokeUpdateConnectionLbl(gruntForm,
+                                    msg);
+                        } else {
+                            System.out.println(msg);
+                        }
 
-                    machineUpdateHandler.scheduleWithFixedDelay(muR, 0, 5,
-                            TimeUnit.SECONDS);
+                        final MachineUpdateR muR = new MachineUpdateR(
+                                gruntStreamSock);
 
-                    if (task == null) { //tell master we're idle
-                        gruntStreamSock.sendHdr(new Hdr(HdrType.IDLE));
-                    } else {  //didn't conclude last task so do it now
-                        AssignedTask myTask = new AssignedTask();
-                        runningTask = new FutureTask<String>(myTask);
-                        taskHandler.submit(runningTask);
+                        machineUpdateHandler.scheduleWithFixedDelay(muR, 0, 5,
+                                TimeUnit.SECONDS);
+
+                        if (task == null) { //tell master we're idle
+                            gruntStreamSock.sendHdr(new Hdr(HdrType.IDLE));
+                        } else {  //didn't conclude last task so do it now
+                            AssignedTask myTask = new AssignedTask();
+                            runningTask = new FutureTask<String>(myTask);
+                            taskHandler.submit(runningTask);
+                        }
+
+                        //main receive loop
+                        do {
+                            //we block on the receiveDelivery; break out when
+                            //we lost connection
+                        } while (!handleDelivery(gruntStreamSock.receiveDelivery()));
+
                     }
-
-                    //main receive loop
-                    do {
-                        //we block on the receiveDelivery; break out when
-                        //we lost connection
-                    } while (!handleDelivery(gruntStreamSock.receiveDelivery()));
-
-                    machineUpdateHandler.shutdownNow();
-                    gruntStreamSock.tryClose();
+                    if(machineUpdateHandler != null) {
+                        machineUpdateHandler.shutdownNow();
+                    }
+                    if(gruntStreamSock != null) {
+                        gruntStreamSock.tryClose();
+                    }
+                    
 
                     //these four are all runtime problems - fatal
                 } catch (NoSuchAlgorithmException ex) {
@@ -164,7 +188,7 @@ public class GruntR implements Runnable, ICommon {
                         gruntStreamSock.tryClose();
                     }
                 }
-                //String msg = "searching for master...";
+                String msg = "attempting to connect with master...";
                 if (gruntForm != null) {
                     GruntEQCaller.invokeUpdateConnectionLbl(gruntForm, msg);
                 } else {
@@ -244,7 +268,7 @@ public class GruntR implements Runnable, ICommon {
     /**
      * user via AWT or local master - this is responsible for:
      * 1. setting localShutdown to true
-     * 2. trying to close the gruntStreamSock (nterrupts gruntreceiveThread)
+     * 2. trying to close the gruntStreamSock (interrupts gruntreceiveThread)
      * if w/ localMaster, then we should abort task as well
      *
      */
@@ -278,11 +302,14 @@ public class GruntR implements Runnable, ICommon {
     private ScheduledExecutorService machineUpdateHandler;
     private volatile Task task; //receiver puts, taskHandler null when done
     private volatile String previousMD5Request; //both taskHandler and grunt
+    private static boolean gruntQuitting;
     //multicast
     private MulticastSocket mSock;
     //socket - stream
     private GruntStreamSocket gruntStreamSock;
-    private InetAddress masterAddress;
+    
+    
+    
 
     /**
      * parses the header object which specifies the action to take: get more
@@ -316,6 +343,7 @@ public class GruntR implements Runnable, ICommon {
         } else if (h.getType() == HdrType.TASK_ABORT) {
             abortCurrentTask(TaskStatus.MASTER_ABORT);
         } else if (h.getType() == HdrType.QUIT_AFTER_TASK) {
+            gruntQuitting = true;
             if (task == null) {
                 shutdown(false);
             } else {
@@ -424,67 +452,102 @@ public class GruntR implements Runnable, ICommon {
     }
 
     /**
-     * finds master's IP address.
+     * finds master's IP address, or gets from cfg if set manually
      * @return true if address was found, false if network failed, or
      * we received an interrupt(shutdown). if false then localShutdown = true
      */
-    private boolean findMaster() {
-        String remoteMaster = cfg.getRemoteMaster();
-        if(remoteMaster != null) {
+    private boolean getMasterAddress() {
+        if(cfg.getAutoDiscoverMaster() == true) {
+            
             try {
-                masterAddress = java.net.InetAddress.getByName(remoteMaster);
-                masterName = remoteMaster;
-                return true;
-            } catch (UnknownHostException ex) {
-                log.throwing(className, "findMaster()", ex);
-            }
-        }
-        byte[] buf = new byte[256];
-        DatagramPacket packet = new DatagramPacket(buf, buf.length);
+                //throws Socket, IO exceptions
+                DatagramPacket packet = listenForMaster();
 
-        try {
-            //throws IOE
-            mSock = new MulticastSocket(cfg.getMulticastPort());
+                if(!localShutdown) {
+                    cfg.setMasterIp(packet.getAddress());
+                    
+                    String masterInfo = new String(packet.getData());
+                    StringTokenizer st = new StringTokenizer(masterInfo, ";");
+                    masterName = st.nextToken();
+                    masterLokiVer = st.nextToken();
+                }
+                
+            } catch (IOException ex) {
+                /**
+                 * either we:
+                 * 1. received a fatal IOE and should shutdown or
+                 * 2. user set localShutdown = true, and closed port
+                 * so in either case, we shutdown.
+                 */
+                if (!localShutdown) {
+                    //if UI didn't signal, this was fatal IOE, and we should
+                    //tell the user and try to close the socket
+                    
+                    log.warning("Loki is unable to setup multicast\n" +
+                            "to discover the master. Verify that your\n" +
+                            "network is properly configured. (Hint:\n" +
+                            "does your network have a default route?)");
+                    
+                    handleFatalException(ex);
+                    
 
-            //throws IOE
-            mSock.joinGroup(cfg.getMulticastAddress());
-
-            /**
-             * THROWS - IOE, SocketE, PortUnreachableE
-             * we'll just catch IOE since we handle them all the same
-             */
-            mSock.receive(packet);  //blocks here until we get a packet
-        } catch (IOException ex) {
-            /**
-             * either we:
-             * 1. received a fatal IOE and should shutdown or
-             * 2. user set localShutdown = true, and closed port
-             * so in either case, we shutdown.
-             */
-            if (!localShutdown) {
-                //if UI didn't signal, this was fatal IOE, and we should
-                //tell the user and try to close the socket
-
-                handleFatalException(ex);
-
-                log.throwing(className, "findMaster()", ex);
-            }
-        }
+                    log.throwing(className, "findMaster()", ex);
+                }
+            } 
+        } 
+            //String test = cfg.getMasterIp().getHostAddress();
 
         //all is well, so let's continue
         if (!localShutdown) {
-            masterAddress = packet.getAddress();
-            String masterInfo = new String(packet.getData());
-            StringTokenizer st = new StringTokenizer(masterInfo, ";");
-            masterName = st.nextToken();
-            masterLokiVer = st.nextToken();
-            //connectPort = Integer.parseInt(st.nextToken());
-
             return true;
         } else //local shutdown
         {
             return false;
         }
+    }
+    
+    private DatagramPacket listenForMaster() throws SocketException, IOException {
+        byte[] buf = new byte[256];
+            DatagramPacket pkt = new DatagramPacket(buf, buf.length);
+            
+        boolean packetReceived = false;
+        
+        received:
+            while(!packetReceived) {
+                Enumeration<NetworkInterface> nets = 
+                   NetworkInterface.getNetworkInterfaces();
+                
+                for (NetworkInterface netint : Collections.list(nets)){
+                    Enumeration<InetAddress> addresses = netint.getInetAddresses();
+                    if(!netint.isLoopback()) {
+
+                        for (InetAddress inetAddress : Collections.list(addresses)) {
+                            if(inetAddress instanceof Inet4Address) {
+                                MulticastSocket s = 
+                                new MulticastSocket(cfg.getGruntMulticastPort());
+
+                                //throws IOE
+                                s.setInterface(inetAddress);
+                                s.joinGroup(cfg.getMulticastAddress());
+                                s.setSoTimeout(1000);
+                                try {
+                                    s.receive(pkt);  //blocks here until we get a packet
+                                    packetReceived = true;
+                                    s.close();
+                                    break received;
+                                } catch (SocketTimeoutException sockEx) {
+                                    //go again
+                                }
+                                if(localShutdown) {
+                                    break received;
+                                }
+                                s.close();
+                            } 
+                        }
+                    }
+                }//end for
+            }
+        return pkt;
     }
 
     /**
@@ -548,24 +611,72 @@ public class GruntR implements Runnable, ICommon {
         public String call() {
             if (task == null) {
                 log.severe("task is null!");
-            } else {
+            } else {    //let's get to work
                 status = GruntStatus.BUSY;
-                if (AreFilesInCache()) {   //have file? if not, request it
-                    //we have the project file, so continue...
+                
+                if(task.isAutoFileTranfer()) {  //loki handles file tranfer
+                    if (AreFilesInCache()) {   //have file? if not, request it
+                        //we have the project file, so continue...
+                        if (task.getStatus() == TaskStatus.DONE ||
+                                task.getStatus() == TaskStatus.FAILED) {
+                            //nothing to do here
+                        } else {    //task hasn't run yet
+                            try {
+                                cfg.getFileCacheMap().get(
+                                        task.getProjectFileMD5()).setInUse(true);
+                                task.setStatus(TaskStatus.RUNNING);
+                                runTaskWrapper(task.isAutoFileTranfer());
+                                cfg.getFileCacheMap().get(
+                                        task.getProjectFileMD5()).setInUse(false);
+
+                                cfg.getFileCacheMap().get(
+                                        task.getProjectFileMD5()).updateTime();
+                            } catch (IOException ex) {
+                                log.warning(ex.getMessage());
+                            }
+                        }
+                        TaskReport report = new TaskReport(task);
+
+                        if (!gruntStreamSock.isClosed()) {
+                            Hdr reportHdr = new Hdr(HdrType.TASK_REPORT, report);
+                            sendHdr(reportHdr);
+
+                            if (task.getStatus() == TaskStatus.DONE) {
+                                //if successful, send a file too
+                                sendOutputFile();
+                                log.finer("sent output file");
+                                log.finer("task set to null");
+                                task = null; //task done and sent, so set to null
+                                if(!gruntQuitting) {
+                                    sendHdr(new Hdr(HdrType.IDLE));
+                                }
+                                
+                            } else if (task.getStatus() == TaskStatus.LOCAL_ABORT) {
+                                task = null;    //ditch current task
+                                signalShutdown();
+                            } else if (task.getStatus() == TaskStatus.MASTER_ABORT) {
+                                task = null;    //ditch current task
+                                sendHdr(new Hdr(HdrType.IDLE));
+                            } else if (task.getStatus() == TaskStatus.FAILED) {
+                                task = null;
+                                sendHdr(new Hdr(HdrType.IDLE));
+                            }
+                        } else {
+                            updateStatus(GruntTxtStatus.PENDING_SEND);
+
+                            log.fine("socket closed! will try and send next connect");
+                        }
+                    }
+                } else {    //no file caching and transfer - network share
+                    
                     if (task.getStatus() == TaskStatus.DONE ||
                             task.getStatus() == TaskStatus.FAILED) {
                         //nothing to do here
                     } else {    //task hasn't run yet
                         try {
-                            cfg.getFileCacheMap().get(
-                                    task.getProjectFileMD5()).setInUse(true);
                             task.setStatus(TaskStatus.RUNNING);
-                            runTaskWrapper();
-                            cfg.getFileCacheMap().get(
-                                    task.getProjectFileMD5()).setInUse(false);
+                            runTaskWrapper(task.isAutoFileTranfer());
 
-                            cfg.getFileCacheMap().get(
-                                    task.getProjectFileMD5()).updateTime();
                         } catch (IOException ex) {
                             log.warning(ex.getMessage());
                         }
@@ -577,11 +688,15 @@ public class GruntR implements Runnable, ICommon {
                         sendHdr(reportHdr);
 
                         if (task.getStatus() == TaskStatus.DONE) {
-                            //if successful, send a file too
-                            sendOutputFile();
-                            log.finer("sent output file");
+                            
+                            if(task.isAutoFileTranfer()) {
+                                 //if successful, send a file too
+                                sendOutputFile();
+                                log.finer("sent output file");
+                            }
+                            //task done (and sent if auto)set to null
+                            task = null; 
                             log.finer("task set to null");
-                            task = null; //task done and sent, so set to null
                             sendHdr(new Hdr(HdrType.IDLE));
                         } else if (task.getStatus() == TaskStatus.LOCAL_ABORT) {
                             task = null;    //ditch current task
@@ -606,9 +721,13 @@ public class GruntR implements Runnable, ICommon {
         }
 
         /*BEGIN PRIVATE*/
-        private void runTaskWrapper() throws IOException {
-            String[] taskCL = CLHelper.generateTaskCL(cfg.getBlenderBin(),
+        private void runTaskWrapper(boolean autoFileTransfer) 
+                throws IOException {
+            String[] taskCL;
+            
+            taskCL = CLHelper.generateFileTaskCL(cfg.getBlenderBin(),
                     lokiCfgDir, task);
+            
 
             String[] result = runTask(taskCL);
             task.setInitialOutput(taskCL, result[0], result[1]);

@@ -38,7 +38,8 @@ public interface ICommon {
      * next task algorithm...
      * 
      */
-    enum TaskStatus { READY, RUNNING, DONE, FAILED, LOCAL_ABORT, MASTER_ABORT };
+    enum TaskStatus { READY, RUNNING, DONE, FAILED,
+        LOCAL_ABORT, MASTER_ABORT, LOST_GRUNT };
 
     enum ReturnStatus { DONE, FAILED };
 
@@ -52,12 +53,25 @@ public interface ICommon {
      */
     enum MsgType {
 
-        SHUTDOWN, FATAL_ERROR,
-        START_QUEUE, STOP_QUEUE,
-        ADD_JOB, VIEW_JOB, REMOVE_JOBS, ABORT_ALL,
-        ADD_GRUNT, UPDATE_GRUNT, REMOVE_GRUNT,
-        IDLE_GRUNT, VIEW_GRUNT, QUIT_GRUNT, QUIT_ALL_GRUNTS,
-        TASK_ASSIGN, TASK_REPORT, RESET_FAILURES,
+        SHUTDOWN,
+        FATAL_ERROR,
+        START_QUEUE,
+        STOP_QUEUE,
+        ADD_JOB,
+        VIEW_JOB,
+        REMOVE_JOBS,
+        ABORT_ALL,
+        ADD_GRUNT,
+        UPDATE_GRUNT,
+        REMOVE_GRUNT,
+        IDLE_GRUNT,
+        VIEW_GRUNT,
+        QUIT_GRUNT,
+        LOST_BUSY_GRUNT,
+        QUIT_ALL_GRUNTS,
+        TASK_ASSIGN,
+        TASK_REPORT,
+        RESET_FAILURES,
         FILE_REQUEST
     };
 

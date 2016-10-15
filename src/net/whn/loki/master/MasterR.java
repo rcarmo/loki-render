@@ -1,7 +1,7 @@
 /**
  *Project: Loki Render - A distributed job queue manager.
- *Version 0.6.2
- *Copyright (C) 2009 Daniel Petersen
+ *Version 0.7.2
+ *Copyright (C) 2014 Daniel Petersen
  *Created on Aug 8, 2009, 8:09:39 PM
  */
 /**
@@ -146,7 +146,7 @@ public class MasterR extends MsgQueue implements Runnable, ICommon {
                 handleMessage(fetchNextMessage());
             } catch (InterruptedException IntEx) {
                 /**
-                 * signalled ourselves to shutdown
+                 * signaled ourselves to shutdown
                  */
                 break;
             } catch (IOException ex) {
@@ -244,7 +244,9 @@ public class MasterR extends MsgQueue implements Runnable, ICommon {
             queueStarting();
         } else if (type == MsgType.TASK_REPORT) {
             handleReport(m);
-        } else if (type == MsgType.RESET_FAILURES) {
+        } else if (type == MsgType.LOST_BUSY_GRUNT) {
+            handleLostBusyGrunt(m);
+        }else if (type == MsgType.RESET_FAILURES) {
             resetFailures(m);
         } else if (type == MsgType.FILE_REQUEST) {
             brokersModel.handleFileRequest(m);
@@ -280,6 +282,8 @@ public class MasterR extends MsgQueue implements Runnable, ICommon {
     private void addJob(Msg m) {
         final AddJobMsg message = (AddJobMsg) m;
         JobFormInput newJobInput = message.getJobInput();
+        String md5 = null;
+        String blendCacheMd5 = null;
 
         if (!jobsModel.isJobNameUnique(newJobInput.getName())) {
             EQCaller.showMessageDialog(masterForm, "Job name exists",
@@ -288,28 +292,34 @@ public class MasterR extends MsgQueue implements Runnable, ICommon {
                     "' already exists. Please use a unique name.",
                     JOptionPane.INFORMATION_MESSAGE);
         } else {
-            //cache the project file and add to fileCacheMap
-            String md5 = MasterIOHelper.newProjFileToCache(fileCacheMap,
+            if(newJobInput.getAutoFileTransfer()) {
+               //auto file transfer is enabled, so 
+               //cache the project file and add to fileCacheMap
+                md5 = MasterIOHelper.newProjFileToCache(fileCacheMap,
                     newJobInput.getProjFileName(), lokiCacheDir, cfg);
-            String blendCacheMd5 = MasterIOHelper.addBlendCacheToLokiCache(
+                blendCacheMd5 = MasterIOHelper.addBlendCacheToLokiCache(
                     fileCacheMap, lokiCacheDir, newJobInput.getProjFileName(),
-                    cfg);
+                    cfg); 
+            }
+            
             File pFile = new File(newJobInput.getProjFileName());
             long size = pFile.length();
-            if (md5 == null) {
+            
+            if(newJobInput.getAutoFileTransfer()) {
+               if (md5 == null) {
                 //oops, we failed to cacheFile
                 EQCaller.showMessageDialog(masterForm, "failed to add job",
                         "Adding a new job failed. Filesystem permission problem?",
                         JOptionPane.WARNING_MESSAGE);
                 log.severe("unable to add new job.");
 
-            } else {
-                //file was successfully added to cache; create/add new job
-                Job newJob = new Job(newJobInput, md5, blendCacheMd5, size);
-                jobsModel.addJob(newJob);
-                updateProgressBar();
+                } 
             }
-
+            //if auto file transfer was on, then
+            //file was successfully added to cache; create/add new job
+            Job newJob = new Job(newJobInput, md5, blendCacheMd5, size);
+            jobsModel.addJob(newJob);
+            updateProgressBar();
         }
         message.disposeAddingJobForm();
     }
@@ -595,6 +605,16 @@ public class MasterR extends MsgQueue implements Runnable, ICommon {
 
         compositer.submit(cTiles);
     }
+    
+    //call when we lose contact with a busy grunt
+    // - assume task is lost and reset given task to 'ready'
+    private void handleLostBusyGrunt(Msg m) {
+      LostBusyGruntMsg lostBusyGruntMsg = (LostBusyGruntMsg) m;
+     
+      Task t = lostBusyGruntMsg.getGruntTask();
+      jobsModel.setTaskStatus(t.getJobID(), t.getTaskID(),
+                    TaskStatus.READY);
+    }
 
     /**
      * called when a grunt is done/failed with a task
@@ -603,9 +623,8 @@ public class MasterR extends MsgQueue implements Runnable, ICommon {
      */
     private void handleReport(Msg m) {
         TaskReportMsg reportMsg = (TaskReportMsg) m;    //cast back
-
-        //extract report
-        TaskReport tReport = reportMsg.getReport();
+        TaskReport tReport;
+        tReport = reportMsg.getReport();
 
         if (tReport.getTask().getStatus() == TaskStatus.DONE) {
             //update the job w/ info reported
